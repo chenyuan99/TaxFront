@@ -191,7 +191,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                     <h3 className="text-xl font-semibold text-gray-900">Basic</h3>
                                     <p className="mt-4 flex items-baseline text-gray-900">
                                         <span className="text-5xl font-extrabold tracking-tight">$9</span>
-                                        <span className="ml-1 text-xl font-semibold">/month</span>
+                                        <span className="ml-1 text-xl font-semibold">/Tax year</span>
                                     </p>
                                     <p className="mt-6 text-gray-500">Perfect for freelancers and individuals</p>
 
@@ -221,7 +221,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                     <h3 className="text-xl font-semibold text-gray-900">Professional</h3>
                                     <p className="mt-4 flex items-baseline text-gray-900">
                                         <span className="text-5xl font-extrabold tracking-tight">$29</span>
-                                        <span className="ml-1 text-xl font-semibold">/month</span>
+                                        <span className="ml-1 text-xl font-semibold">/Tax year</span>
                                     </p>
                                     <p className="mt-6 text-gray-500">Perfect for small businesses</p>
 
@@ -255,7 +255,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                     <h3 className="text-xl font-semibold text-gray-900">Enterprise</h3>
                                     <p className="mt-4 flex items-baseline text-gray-900">
                                         <span className="text-5xl font-extrabold tracking-tight">$99</span>
-                                        <span className="ml-1 text-xl font-semibold">/month</span>
+                                        <span className="ml-1 text-xl font-semibold">/Tax year</span>
                                     </p>
                                     <p className="mt-6 text-gray-500">Perfect for large organizations</p>
 

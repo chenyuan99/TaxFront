@@ -5,6 +5,7 @@ import { Dashboard } from './components/Dashboard';
 import { TermsOfService } from './components/TermsOfService';
 import { Privacy } from './components/Privacy';
 import { Contact } from './components/Contact';
+import { CookieBanner } from './components/CookieBanner';
 import { auth } from './firebase';
 import { User } from 'firebase/auth';
 
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="*" element={user ? <Dashboard /> : <Auth />} />
             </Routes>
+            <CookieBanner />
         </BrowserRouter>
     );
 }
