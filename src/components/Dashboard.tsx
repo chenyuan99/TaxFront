@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { db, storage, auth } from '../firebase';
-import { collection, query, orderBy, addDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { format } from 'date-fns';
-import { FileText, Trash2, Upload, LogOut } from 'lucide-react';
+import {useState, useEffect} from 'react';
+import {db, storage, auth} from '../firebase';
+import {collection, query, orderBy, addDoc, deleteDoc, doc, onSnapshot} from 'firebase/firestore';
+import {ref, uploadBytes, getDownloadURL, deleteObject} from 'firebase/storage';
+import {format} from 'date-fns';
+import {FileText, Trash2, Upload, LogOut} from 'lucide-react';
+import {Chat} from './Chat';
 
 interface TaxDocument {
     id: string;
@@ -96,13 +97,22 @@ export function Dashboard() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">TaxFront</h1>
-                    <button
-                        onClick={handleSignOut}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
-                    >
-                        <LogOut className="w-4 h-4 mr-2"/>
-                        Sign out
-                    </button>
+                    <div className="flex items-center space-x-4">
+                        {auth.currentUser?.photoURL && (
+                            <img
+                                src={auth.currentUser.photoURL}
+                                alt="Profile"
+                                className="w-8 h-8 rounded-full"
+                            />
+                        )}
+                        <button
+                            onClick={handleSignOut}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+                        >
+                            <LogOut className="w-4 h-4 mr-2"/>
+                            Sign out
+                        </button>
+                    </div>
                 </div>
 
                 <div className="bg-white rounded-lg shadow p-6 mb-8">
@@ -182,6 +192,7 @@ export function Dashboard() {
                     </div>
                 </div>
             </div>
+            <Chat/>
         </div>
     );
 }

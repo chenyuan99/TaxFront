@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
-import {auth} from '../firebase';
-import {signInWithEmailAndPassword, createUserWithEmailAndPassword} from 'firebase/auth';
-import {Lock, Mail} from 'lucide-react';
+import React, { useState } from 'react';
+import { auth } from '../firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { Lock, Mail } from 'lucide-react';
 
 export function Auth() {
     const [isLogin, setIsLogin] = useState(true);
@@ -17,6 +17,15 @@ export function Auth() {
             } else {
                 await createUserWithEmailAndPassword(auth, email, password);
             }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+            await signInWithPopup(auth, provider);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         }
@@ -95,6 +104,16 @@ export function Auth() {
                             className="text-sm text-indigo-600 hover:text-indigo-500"
                         >
                             {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
+                        </button>
+                    </div>
+
+                    <div className="text-center mt-4">
+                        <button
+                            type="button"
+                            onClick={handleGoogleLogin}
+                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                            Sign in with Google
                         </button>
                     </div>
                 </form>
