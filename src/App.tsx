@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Auth } from './components/Auth';
 import { Dashboard } from './components/Dashboard';
 import { TermsOfService } from './components/TermsOfService';
+import { Privacy } from './components/Privacy';
+import { Contact } from './components/Contact';
 import { auth } from './firebase';
 import { User } from 'firebase/auth';
 
@@ -31,6 +33,8 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="*" element={user ? <Dashboard /> : <Auth />} />
             </Routes>
         </BrowserRouter>
