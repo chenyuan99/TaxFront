@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<testsuites>
-<testsuite name="Validate Articles functionality" errors="0" tests="4" failures="0" time="0.382" timestamp="2021-11-18T21:35:52">
-  <testcase classname="Validate Articles functionality" name="login user" time="0.08"></testcase>
-  <testcase classname="Validate Articles functionality" name="Unit test to validate GET /articles" time="0.095"></testcase>
-  <testcase classname="Validate Articles functionality" name="Unit test to validate GET /articles/id" time="0.11"></testcase>
-  <testcase classname="Validate Articles functionality" name="Unit test to validate POST /article" time="0.096"></testcase>
-</testsuite>
-</testsuites>

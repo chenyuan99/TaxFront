@@ -1,16 +1,18 @@
-import React, {useEffect, useState} from 'react';
-import {Auth} from './components/Auth';
-import {Dashboard} from './components/Dashboard';
-import {auth} from './firebase';
-import {User} from 'firebase/auth';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Auth } from './components/Auth';
+import { Dashboard } from './components/Dashboard';
+import { TermsOfService } from './components/TermsOfService';
+import { auth } from './firebase';
+import { User } from 'firebase/auth';
 
 function App() {
-    const [user, setUserS] = useState<User | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
-            setUserS(user);
+            setUser(user);
             setLoading(false);
         });
 
@@ -25,7 +27,14 @@ function App() {
         );
     }
 
-    return user ? <Dashboard/> : <Auth/>;
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="*" element={user ? <Dashboard /> : <Auth />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;

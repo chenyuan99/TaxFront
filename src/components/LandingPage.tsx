@@ -1,5 +1,6 @@
 import React from 'react';
 import { Shield, FileCheck, Clock, ArrowRight, Users, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {Chat} from "./Chat.tsx";
 
 export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
@@ -111,8 +112,8 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                             <span className="ml-2 text-gray-900">© 2024 TaxFront. All rights reserved.</span>
                         </div>
                         <div className="flex space-x-6">
-                            <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">Privacy Policy</a>
-                            <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">Terms of Service</a>
+                            <Link to="/privacy" className="text-gray-600 hover:text-blue-600 transition-colors">Privacy Policy</Link>
+                            <Link to="/terms" className="text-gray-600 hover:text-blue-600 transition-colors">Terms of Service</Link>
                             <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">Contact</a>
                         </div>
                     </div>
