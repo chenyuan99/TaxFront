@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Auth } from './components/Auth';
 import { Dashboard } from './components/Dashboard';
+import { AccountantDashboard } from './components/AccountantDashboard';
 import { TermsOfService } from './components/TermsOfService';
 import { Privacy } from './components/Privacy';
 import { Contact } from './components/Contact';
@@ -12,10 +13,14 @@ import { User } from 'firebase/auth';
 function App() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isAccountant, setIsAccountant] = useState(false);
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
             setUser(user);
+            // In a real app, you would check the user's role in your database
+            // This is just a simulation using email
+            setIsAccountant(user?.email?.includes('taxfront.io') || false);
             setLoading(false);
         });
 
@@ -36,7 +41,16 @@ function App() {
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="*" element={user ? <Dashboard /> : <Auth />} />
+                <Route
+                    path="*"
+                    element={
+                        user ? (
+                            isAccountant ? <AccountantDashboard /> : <Dashboard />
+                        ) : (
+                            <Auth />
+                        )
+                    }
+                />
             </Routes>
             <CookieBanner />
         </BrowserRouter>
