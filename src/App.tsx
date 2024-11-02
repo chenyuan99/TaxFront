@@ -9,6 +9,7 @@ import { Contact } from './pages/Contact.tsx';
 import { Profile } from './components/Profile';
 import { About } from './pages/About.tsx';
 import { TaxForms  } from './pages/TaxForms.tsx';
+import { TaxCalculator  } from './pages/TaxCalculator.tsx';
 import { CookieBanner } from './components/CookieBanner';
 import { auth } from './firebase';
 import { User } from 'firebase/auth';
@@ -46,6 +47,7 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/forms" element={<TaxForms />} />
+                <Route path="/calculator" element={<TaxCalculator />} />
                 <Route path="/profile" element={user ? <Profile /> : <Auth />} />
                 <Route
                     path="*"
