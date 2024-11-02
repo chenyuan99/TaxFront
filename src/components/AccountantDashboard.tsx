@@ -1,17 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { db, auth } from '../firebase';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-import { FileText, Users, Clock, Filter, Search, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
-import type { TaxDocument } from '../types/document';
-
-interface Client {
-    id: string;
-    name: string;
-    email: string;
-    documentsCount: number;
-    lastActivity: Date;
-    status: 'active' | 'pending' | 'inactive';
-}
+import React, {useState, useEffect} from 'react';
+import {db, auth} from '../firebase';
+import {collection, query, where, orderBy, getDocs} from 'firebase/firestore';
+import {FileText, Users, Clock, Filter, Search, CheckCircle, AlertCircle, Calendar} from 'lucide-react';
+import type {TaxDocument} from '../types/document';
+import type {Client} from '../types/users';
 
 export function AccountantDashboard() {
     const [clients, setClients] = useState<Client[]>([]);
@@ -105,7 +97,7 @@ export function AccountantDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div className="bg-white rounded-lg shadow p-6">
                         <div className="flex items-center">
-                            <Users className="h-8 w-8 text-blue-600" />
+                            <Users className="h-8 w-8 text-blue-600"/>
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-600">Total Clients</p>
                                 <p className="text-2xl font-semibold text-gray-900">{stats.totalClients}</p>
@@ -115,7 +107,7 @@ export function AccountantDashboard() {
 
                     <div className="bg-white rounded-lg shadow p-6">
                         <div className="flex items-center">
-                            <Clock className="h-8 w-8 text-yellow-600" />
+                            <Clock className="h-8 w-8 text-yellow-600"/>
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-600">Pending Documents</p>
                                 <p className="text-2xl font-semibold text-gray-900">{stats.pendingDocuments}</p>
@@ -125,7 +117,7 @@ export function AccountantDashboard() {
 
                     <div className="bg-white rounded-lg shadow p-6">
                         <div className="flex items-center">
-                            <CheckCircle className="h-8 w-8 text-green-600" />
+                            <CheckCircle className="h-8 w-8 text-green-600"/>
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-600">Processed Today</p>
                                 <p className="text-2xl font-semibold text-gray-900">{stats.processedToday}</p>
@@ -137,11 +129,13 @@ export function AccountantDashboard() {
                 {/* Client List */}
                 <div className="bg-white rounded-lg shadow">
                     <div className="p-6 border-b border-gray-200">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                        <div
+                            className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                             <h2 className="text-xl font-semibold text-gray-900">Clients</h2>
                             <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <Search
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"/>
                                     <input
                                         type="text"
                                         placeholder="Search clients..."
@@ -191,7 +185,8 @@ export function AccountantDashboard() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0 h-10 w-10">
-                                                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                                <div
+                                                    className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                             <span className="text-gray-600 font-medium">
                               {client.name.charAt(0)}
                             </span>

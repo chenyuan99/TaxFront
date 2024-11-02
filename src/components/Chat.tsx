@@ -2,14 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { MessageSquare, Send, User } from 'lucide-react';
+import { Message } from '../types/messages';
 
-interface Message {
-    id: string;
-    text: string;
-    sender: string;
-    timestamp: Date;
-    isAccountant: boolean;
-}
+
+
 
 export function Chat() {
     const [messages, setMessages] = useState<Message[]>([]);

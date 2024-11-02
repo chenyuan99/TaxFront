@@ -53,12 +53,9 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                         <div className="lg:grid lg:grid-cols-12 lg:gap-8">
                             <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
                                 <h1>
-                  <span className="block text-base font-semibold tracking-wide text-blue-600 uppercase">
-                    Welcome to TaxFront
-                  </span>
                                     <span className="mt-1 block text-4xl tracking-tight font-extrabold sm:text-5xl xl:text-6xl">
-                    <span className="block text-gray-900">Smart Tax Management</span>
-                    <span className="block text-blue-600">For Modern Business</span>
+                    <span className="block text-gray-900">Smart Tax Filing</span>
+                    <span className="block text-blue-600">For Young Professional</span>
                   </span>
                                 </h1>
                                 <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
@@ -188,9 +185,9 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                             {/* Basic Plan */}
                             <div className="relative p-8 bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col">
                                 <div className="flex-1">
-                                    <h3 className="text-xl font-semibold text-gray-900">Basic</h3>
+                                    <h3 className="text-xl font-semibold text-gray-900">Smart</h3>
                                     <p className="mt-4 flex items-baseline text-gray-900">
-                                        <span className="text-5xl font-extrabold tracking-tight">$9</span>
+                                        <span className="text-5xl font-extrabold tracking-tight">$0</span>
                                         <span className="ml-1 text-xl font-semibold">/Tax year</span>
                                     </p>
                                     <p className="mt-6 text-gray-500">Perfect for freelancers and individuals</p>
@@ -218,7 +215,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                     Most Popular
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-xl font-semibold text-gray-900">Professional</h3>
+                                    <h3 className="text-xl font-semibold text-gray-900">Smart Plus</h3>
                                     <p className="mt-4 flex items-baseline text-gray-900">
                                         <span className="text-5xl font-extrabold tracking-tight">$29</span>
                                         <span className="ml-1 text-xl font-semibold">/Tax year</span>
@@ -252,7 +249,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                             {/* Enterprise Plan */}
                             <div className="relative p-8 bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col">
                                 <div className="flex-1">
-                                    <h3 className="text-xl font-semibold text-gray-900">Enterprise</h3>
+                                    <h3 className="text-xl font-semibold text-gray-900">Smart Max</h3>
                                     <p className="mt-4 flex items-baseline text-gray-900">
                                         <span className="text-5xl font-extrabold tracking-tight">$99</span>
                                         <span className="ml-1 text-xl font-semibold">/Tax year</span>
@@ -294,13 +291,13 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                 <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                         <div className="flex items-center">
-                            <Shield className="h-6 w-6 text-blue-600" />
                             <span className="ml-2 text-gray-900">© 2024 TaxFront. All rights reserved.</span>
                         </div>
                         <div className="flex space-x-6">
                             <Link to="/privacy" className="text-gray-600 hover:text-blue-600 transition-colors">Privacy Policy</Link>
                             <Link to="/terms" className="text-gray-600 hover:text-blue-600 transition-colors">Terms of Service</Link>
                             <Link to="/contact" className="text-gray-600 hover:text-blue-600 transition-colors">Contact</Link>
+                            <Link to="/about" className="text-gray-600 hover:text-blue-600 transition-colors">About</Link>
                         </div>
                     </div>
                 </div>

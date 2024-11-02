@@ -6,6 +6,8 @@ import { AccountantDashboard } from './components/AccountantDashboard';
 import { TermsOfService } from './components/TermsOfService';
 import { Privacy } from './components/Privacy';
 import { Contact } from './components/Contact';
+import { Profile } from './components/Profile';
+import { About } from './components/About';
 import { CookieBanner } from './components/CookieBanner';
 import { auth } from './firebase';
 import { User } from 'firebase/auth';
@@ -20,7 +22,7 @@ function App() {
             setUser(user);
             // In a real app, you would check the user's role in your database
             // This is just a simulation using email
-            setIsAccountant(user?.email?.includes('taxfront.io') || false);
+            setIsAccountant(user?.email?.includes('accountant') || false);
             setLoading(false);
         });
 
@@ -41,6 +43,8 @@ function App() {
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/profile" element={user ? <Profile /> : <Auth />} />
                 <Route
                     path="*"
                     element={
