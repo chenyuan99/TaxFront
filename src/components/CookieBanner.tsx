@@ -31,7 +31,7 @@ export function CookieBanner() {
                         <Cookie className="h-6 w-6 text-blue-600 flex-shrink-0" />
                         <p className="text-sm text-gray-600">
                             We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.{' '}
-                            <a href="/privacy" className="text-blue-600 hover:text-blue-700 underline">
+                            <a href="/src/components/Privacy" className="text-blue-600 hover:text-blue-700 underline">
                                 Learn more
                             </a>
                         </p>
