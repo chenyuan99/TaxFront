@@ -14,6 +14,7 @@ import { CookieBanner } from './components/CookieBanner';
 import { auth } from './firebase';
 import { User } from 'firebase/auth';
 import { Chat }  from "./components/Chat.tsx";
+import {Footer} from "./components/Footer.tsx";
 
 export default function App() {
     const [user, setUser] = useState<User | null>(null);
@@ -60,6 +61,7 @@ export default function App() {
                 />
             </Routes>
             <Chat />
+            <Footer />
             <CookieBanner />
         </BrowserRouter>
     );
