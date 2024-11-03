@@ -1,7 +1,5 @@
-import React from 'react';
 import { Shield, FileCheck, Clock, ArrowRight, Users, Sparkles, Check, Star, Quote } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import {Chat} from "./Chat.tsx";
 
 export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
     const testimonials = [
@@ -283,7 +281,6 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                             </div>
                         </div>
                     </div>
-                    <Chat/>
                 </div>
             </main>
 

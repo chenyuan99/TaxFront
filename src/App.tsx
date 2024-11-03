@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Auth } from './components/Auth';
 import { Dashboard } from './components/Dashboard';
@@ -13,6 +13,7 @@ import { TaxForms } from './components/TaxForms';
 import { CookieBanner } from './components/CookieBanner';
 import { auth } from './firebase';
 import { User } from 'firebase/auth';
+import { Chat }  from "./components/Chat.tsx";
 
 export default function App() {
     const [user, setUser] = useState<User | null>(null);
@@ -58,6 +59,7 @@ export default function App() {
                     }
                 />
             </Routes>
+            <Chat />
             <CookieBanner />
         </BrowserRouter>
     );
