@@ -47,6 +47,7 @@ export default function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/calculator" element={<TaxCalculator />} />
                 <Route path="/forms" element={<TaxForms />} />
+                <Route path="/auth" element={<Auth />} />
                 <Route path="/profile" element={user ? <Profile /> : <Auth />} />
                 <Route
                     path="*"

@@ -295,6 +295,8 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                             <Link to="/terms" className="text-gray-600 hover:text-blue-600 transition-colors">Terms of Service</Link>
                             <Link to="/contact" className="text-gray-600 hover:text-blue-600 transition-colors">Contact</Link>
                             <Link to="/about" className="text-gray-600 hover:text-blue-600 transition-colors">About</Link>
+                            <Link to="/calculator" className="text-gray-600 hover:text-blue-600 transition-colors">Tax Calculator</Link>
+                            <Link to="/forms" className="text-gray-600 hover:text-blue-600 transition-colors">Tax Forms</Link>
                         </div>
                     </div>
                 </div>
