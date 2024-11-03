@@ -3,18 +3,18 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Auth } from './components/Auth';
 import { Dashboard } from './components/Dashboard';
 import { AccountantDashboard } from './components/AccountantDashboard';
-import { TermsOfService } from './components/TermsOfService.tsx';
-import { Privacy } from './components/Privacy.tsx';
-import { Contact } from './components/Contact.tsx';
+import { TermsOfService } from './components/TermsOfService';
+import { Privacy } from './components/Privacy';
+import { Contact } from './components/Contact';
 import { Profile } from './components/Profile';
-import { About } from './components/About.tsx';
-import { TaxForms  } from './components/TaxForms.tsx';
-import { TaxCalculator  } from './components/TaxCalculator.tsx';
+import { About } from './components/About';
+import { TaxCalculator } from './components/TaxCalculator';
+import { TaxForms } from './components/TaxForms';
 import { CookieBanner } from './components/CookieBanner';
 import { auth } from './firebase';
 import { User } from 'firebase/auth';
 
-function App() {
+export default function App() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [isAccountant, setIsAccountant] = useState(false);
@@ -22,8 +22,6 @@ function App() {
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             setUser(user);
-            // In a real app, you would check the user's role in your database
-            // This is just a simulation using email
             setIsAccountant(user?.email?.includes('accountant') || false);
             setLoading(false);
         });
@@ -46,8 +44,8 @@ function App() {
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/forms" element={<TaxForms />} />
                 <Route path="/calculator" element={<TaxCalculator />} />
+                <Route path="/forms" element={<TaxForms />} />
                 <Route path="/profile" element={user ? <Profile /> : <Auth />} />
                 <Route
                     path="*"
@@ -64,5 +62,3 @@ function App() {
         </BrowserRouter>
     );
 }
-
-export default App;
