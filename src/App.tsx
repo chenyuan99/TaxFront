@@ -41,14 +41,13 @@ export default function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/calculator" element={<TaxCalculator />} />
-                <Route path="/forms" element={<TaxForms />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/profile" element={user ? <Profile /> : <Auth />} />
+                <Route path="terms" element={<TermsOfService />} />
+                <Route path="privacy" element={<Privacy />} />
+                <Route path="contact" element={<Contact />} />
+                <Route path="about" element={<About />} />
+                <Route path="calculator" element={<TaxCalculator />} />
+                <Route path="forms" element={<TaxForms />} />
+                <Route path="profile" element={user ? <Profile /> : <Auth />} />
                 <Route
                     path="*"
                     element={
