@@ -1,5 +1,7 @@
 # TaxFront
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/b8b3bdcb-cf9e-4958-bcbd-7937f3e46a56/deploy-status)](https://app.netlify.com/sites/taxfront/deploys)
+
 ## Description
 TaxFront is a web application designed to help users manage their tax documents efficiently. The application provides features for user authentication, document management, and a user-friendly interface.
 
