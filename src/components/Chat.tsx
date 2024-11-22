@@ -9,8 +9,7 @@ export function Chat() {
     Intercom({
         app_id: 'b202qhmz',
     });
-
-    return <div>Example App</div>;
+    return <div></div>;
 }
 
 // export function Chat() {
