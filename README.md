@@ -1,6 +1,7 @@
 # TaxFront
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/b8b3bdcb-cf9e-4958-bcbd-7937f3e46a56/deploy-status)](https://app.netlify.com/sites/taxfront/deploys)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront?ref=badge_shield)
 
 ## Description
 TaxFront is a web application designed to help users manage their tax documents efficiently. The application provides features for user authentication, document management, and a user-friendly interface.
@@ -36,3 +37,6 @@ TaxFront is a web application designed to help users manage their tax documents 
 To start the development server, run:
 ```sh
 npm run dev
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront?ref=badge_large)
