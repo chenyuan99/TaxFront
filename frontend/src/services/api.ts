@@ -18,11 +18,14 @@ async function callFunction(endpoint: string, method: 'GET' | 'POST' = 'GET', da
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
+        credentials: 'include',
+        mode: 'cors',
         ...(data && { body: JSON.stringify(data) }),
     });
 
     if (!response.ok) {
-        throw new Error(`API call failed: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`API call failed: ${errorText}`);
     }
 
     return response.json();
