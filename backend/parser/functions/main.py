@@ -1,19 +1,93 @@
+import firebase_admin
+from firebase_admin import credentials, firestore, auth
 from firebase_functions import https_fn, firestore_fn
-from firebase_admin import initialize_app, firestore, auth
 import json
 from datetime import datetime
+from functools import wraps
 
-# Initialize Firebase
-app = initialize_app()
-_db = None
+# Initialize Firebase Admin
+cred = credentials.ApplicationDefault()
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-def get_db():
-    global _db
-    if _db is None:
-        _db = firestore.client()
-    return _db
+def get_cors_headers(origin):
+    return {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+        'Access-Control-Max-Age': '3600',
+        'Access-Control-Allow-Credentials': 'true',
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+        'Cross-Origin-Embedder-Policy': 'require-corp'
+    }
+
+def cors_enabled(func):
+    @wraps(func)
+    def wrapper(req: https_fn.Request) -> https_fn.Response:
+        origin = req.headers.get('Origin', '')
+        allowed_origins = [
+            'https://tax-front.vercel.app',
+            'https://taxfront-1e142.web.app',
+            'https://taxfront-1e142.firebaseapp.com',
+            'http://localhost:5173',
+            'http://localhost:3000'
+        ]
+        
+        if origin not in allowed_origins and not origin.endswith('.vercel.app'):
+            return https_fn.Response(
+                json.dumps({"error": "Origin not allowed"}),
+                status=403,
+                headers={"Content-Type": "application/json"}
+            )
+
+        if req.method == 'OPTIONS':
+            return https_fn.Response(
+                '',
+                status=204,
+                headers=get_cors_headers(origin)
+            )
+
+        try:
+            response = func(req)
+            
+            if isinstance(response, https_fn.Response):
+                for key, value in get_cors_headers(origin).items():
+                    response.headers[key] = value
+                return response
+                
+            return https_fn.Response(
+                json.dumps(response),
+                status=200,
+                headers={
+                    "Content-Type": "application/json",
+                    **get_cors_headers(origin)
+                }
+            )
+        except Exception as e:
+            return https_fn.Response(
+                json.dumps({"error": str(e)}),
+                status=500,
+                headers={
+                    "Content-Type": "application/json",
+                    **get_cors_headers(origin)
+                }
+            )
+    
+    return wrapper
+
+def verify_auth_token(req: https_fn.Request):
+    if 'Authorization' not in req.headers:
+        raise ValueError('No authorization token provided')
+    
+    token = req.headers['Authorization'].split('Bearer ')[1]
+    try:
+        decoded_token = auth.verify_id_token(token)
+        return decoded_token
+    except Exception as e:
+        raise ValueError(f'Invalid authorization token: {str(e)}')
 
 @https_fn.on_request()
+@cors_enabled
 def create_user_profile(req: https_fn.Request) -> https_fn.Response:
     """Create or update a user profile with tax-related information"""
     try:
@@ -41,13 +115,14 @@ def create_user_profile(req: https_fn.Request) -> https_fn.Response:
         data['updatedAt'] = datetime.now().isoformat()
         
         # Store in Firestore
-        get_db().collection('users').document(uid).set(data, merge=True)
+        db.collection('users').document(uid).set(data, merge=True)
         
         return https_fn.Response('Profile updated successfully')
     except Exception as e:
         return https_fn.Response(f'Error: {str(e)}', status=500)
 
 @https_fn.on_request()
+@cors_enabled
 def get_tax_documents(req: https_fn.Request) -> https_fn.Response:
     """Retrieve user's tax documents"""
     try:
@@ -64,7 +139,7 @@ def get_tax_documents(req: https_fn.Request) -> https_fn.Response:
         uid = decoded_token['uid']
         
         # Query documents
-        docs = get_db().collection('taxDocuments').where('userId', '==', uid).stream()
+        docs = db.collection('taxDocuments').where('userId', '==', uid).stream()
         
         # Format response
         documents = []
@@ -106,7 +181,7 @@ def process_new_tax_document(
         
         # Add to user's document count
         if 'userId' in data:
-            user_ref = get_db().collection('users').document(data['userId'])
+            user_ref = db.collection('users').document(data['userId'])
             user_ref.update({
                 'documentCount': firestore.Increment(1)
             })
@@ -115,6 +190,7 @@ def process_new_tax_document(
         print(f"Error processing document: {str(e)}")
 
 @https_fn.on_request()
+@cors_enabled
 def get_tax_summary(req: https_fn.Request) -> https_fn.Response:
     """Generate a summary of user's tax situation"""
     try:
@@ -131,7 +207,7 @@ def get_tax_summary(req: https_fn.Request) -> https_fn.Response:
         uid = decoded_token['uid']
         
         # Get user's documents
-        docs = get_db().collection('taxDocuments').where('userId', '==', uid).stream()
+        docs = db.collection('taxDocuments').where('userId', '==', uid).stream()
         
         # Calculate summary
         summary = {
