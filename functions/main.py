@@ -2,9 +2,12 @@ from firebase_functions import https_fn, firestore_fn
 from firebase_admin import initialize_app, firestore, auth
 import json
 from datetime import datetime
+from functools import lru_cache
+from google.cloud.firestore import Query
 
 # Initialize Firebase lazily
 _db = None
+_auth = None
 
 def get_db():
     global _db
@@ -12,6 +15,22 @@ def get_db():
         initialize_app()
         _db = firestore.client()
     return _db
+
+@lru_cache(maxsize=1000)
+def verify_token(token: str) -> dict:
+    """Cache token verification results"""
+    global _auth
+    if _auth is None:
+        _auth = auth
+    return _auth.verify_id_token(token)
+
+def get_user_documents_query(uid: str) -> Query:
+    """Get optimized query for user documents"""
+    return (get_db()
+            .collection('taxDocuments')
+            .where('userId', '==', uid)
+            .order_by('uploadDate', direction=firestore.Query.DESCENDING)
+            .limit(100))  # Limit to recent documents
 
 @https_fn.on_request()
 def create_user_profile(req: https_fn.Request) -> https_fn.Response:
@@ -26,8 +45,11 @@ def create_user_profile(req: https_fn.Request) -> https_fn.Response:
             return https_fn.Response('Unauthorized', status=401)
         
         id_token = auth_header.split('Bearer ')[1]
-        decoded_token = auth.verify_id_token(id_token)
-        uid = decoded_token['uid']
+        try:
+            decoded_token = verify_token(id_token)
+            uid = decoded_token['uid']
+        except Exception as e:
+            return https_fn.Response('Invalid token', status=401)
         
         # Get request data
         data = req.get_json()
@@ -60,21 +82,24 @@ def get_tax_documents(req: https_fn.Request) -> https_fn.Response:
             return https_fn.Response('Unauthorized', status=401)
             
         id_token = auth_header.split('Bearer ')[1]
-        decoded_token = auth.verify_id_token(id_token)
-        uid = decoded_token['uid']
+        try:
+            decoded_token = verify_token(id_token)
+            uid = decoded_token['uid']
+        except Exception as e:
+            return https_fn.Response('Invalid token', status=401)
         
-        # Query documents
-        docs = get_db().collection('taxDocuments').where('userId', '==', uid).stream()
+        # Use optimized query
+        docs = get_user_documents_query(uid).stream()
         
         # Format response
-        documents = []
-        for doc in docs:
-            doc_data = doc.to_dict()
-            doc_data['id'] = doc.id
-            documents.append(doc_data)
+        documents = [{
+            'id': doc.id,
+            **doc.to_dict()
+        } for doc in docs]
             
         return https_fn.Response(
             json.dumps({'documents': documents}),
+            headers={'Cache-Control': 'public, max-age=300'},  # Cache for 5 minutes
             content_type='application/json'
         )
     except Exception as e:
@@ -101,16 +126,9 @@ def process_new_tax_document(
             'status': 'processed'
         }
         
-        # Update document with metadata
+        # Update document
         document.reference.update(metadata)
         
-        # Add to user's document count
-        if 'userId' in data:
-            user_ref = get_db().collection('users').document(data['userId'])
-            user_ref.update({
-                'documentCount': firestore.Increment(1)
-            })
-            
     except Exception as e:
         print(f"Error processing document: {str(e)}")
 
@@ -120,39 +138,47 @@ def get_tax_summary(req: https_fn.Request) -> https_fn.Response:
     try:
         if req.method != 'GET':
             return https_fn.Response('Method not allowed', status=405)
-            
+        
         # Verify authentication
         auth_header = req.headers.get('Authorization', '')
         if not auth_header.startswith('Bearer '):
             return https_fn.Response('Unauthorized', status=401)
             
         id_token = auth_header.split('Bearer ')[1]
-        decoded_token = auth.verify_id_token(id_token)
-        uid = decoded_token['uid']
+        try:
+            decoded_token = verify_token(id_token)
+            uid = decoded_token['uid']
+        except Exception as e:
+            return https_fn.Response('Invalid token', status=401)
         
-        # Get user's documents
-        docs = get_db().collection('taxDocuments').where('userId', '==', uid).stream()
+        # Use optimized query
+        docs = get_user_documents_query(uid).stream()
         
         # Calculate summary
-        summary = {
-            'totalDocuments': 0,
-            'lastUpdated': None,
-            'documentTypes': {}
-        }
+        total_documents = 0
+        document_types = {}
+        latest_update = None
         
         for doc in docs:
             data = doc.to_dict()
-            summary['totalDocuments'] += 1
+            total_documents += 1
             
             doc_type = data.get('type', 'unknown')
-            summary['documentTypes'][doc_type] = summary['documentTypes'].get(doc_type, 0) + 1
+            document_types[doc_type] = document_types.get(doc_type, 0) + 1
             
-            updated_at = data.get('updatedAt')
-            if updated_at and (not summary['lastUpdated'] or updated_at > summary['lastUpdated']):
-                summary['lastUpdated'] = updated_at
+            upload_date = data.get('uploadDate')
+            if upload_date and (not latest_update or upload_date > latest_update):
+                latest_update = upload_date
+        
+        summary = {
+            'totalDocuments': total_documents,
+            'documentTypes': document_types,
+            'lastUpdated': latest_update
+        }
         
         return https_fn.Response(
             json.dumps(summary),
+            headers={'Cache-Control': 'public, max-age=300'},  # Cache for 5 minutes
             content_type='application/json'
         )
     except Exception as e:
