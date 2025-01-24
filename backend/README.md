@@ -1,24 +1,80 @@
-# taxRAG
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxRAG.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxRAG?ref=badge_shield)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxRAG.svg?type=shield&issueType=security)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxRAG?ref=badge_shield&issueType=security)
-
+# TaxFront Backend
 
 ## Overview
-**taxRAG** is a powerful tax assistant built using a Retrieval-Augmented Generation (RAG) pipeline, designed to help users generate accurate and insightful tax-related information. The project combines the power of web scraping, machine learning, and LangChain’s RAG framework to deliver real-time tax insights through an intelligent chatbot interface.
+The backend system for TaxFront, a tax assistant built using a Retrieval-Augmented Generation (RAG) pipeline. It provides tax-related information processing, document parsing, and intelligent query handling through a combination of LangChain, Firebase, and machine learning technologies.
 
-## Key Features
-- **RAG Pipeline with LangChain**: The core of this project is built on LangChain, which powers the Retrieval-Augmented Generation (RAG) pipeline. This allows the chatbot to provide precise and context-aware answers by retrieving relevant tax data and generating responses on the fly.
-- **Data Sourced via Web Scraping**: Tax data is dynamically retrieved by scraping information from the California Department of Tax and Fee Administration (CDTFA) website (https://www.cdtfa.ca.gov/), ensuring that the information provided is up-to-date and accurate.
-- **Ollama's Command-R for Model Training**: The chatbot is powered by a model trained using Ollama's Command-R. This ensures that the tax assistant provides nuanced and highly relevant responses to user queries.
-- **Custom Tax Reports**: Users can generate tailored tax reports based on the most recent data, making tax compliance easier for both individuals and businesses.
-
-## Usage
-This project is ideal for tax professionals, businesses, and individuals looking to streamline their tax-related processes. The chatbot interface allows users to ask specific tax questions and receive accurate, data-driven responses.
+## Project Structure
+```
+backend/
+├── app.py              # Main Flask application
+├── parser/            # Tax document parsing utilities
+├── embedding/         # Vector embeddings and models
+├── faiss_index/       # FAISS vector database
+├── prompts/          # LLM prompt templates
+├── src/              # Core source code
+├── test/             # Unit and integration tests
+└── docs/             # Documentation
+```
 
 ## Installation
-To use this project, clone the repository as follows:
+
+1. Create and activate a virtual environment:
 ```bash
-git clone https://github.com/chenyuan99/taxRAG.git
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Set up environment variables:
+Create a `.env` file with the following:
+```
+FIREBASE_CREDENTIALS_PATH=path/to/credentials.json
+OPENAI_API_KEY=your_api_key
+```
+
+## Key Components
+
+### Parser Module
+- Handles tax document parsing and data extraction
+- Supports various document formats (PDF, images via OCR)
+- Located in `parser/` directory
+
+### Embedding System
+- Manages document vectorization and semantic search
+- Uses FAISS for efficient vector storage and retrieval
+- Located in `embedding/` directory
+
+### Firebase Integration
+- Handles data persistence and user authentication
+- Manages real-time updates and data synchronization
+- Configuration in `.firebaserc` and `firebase.json`
+
+## Dependencies
+- LangChain ecosystem (langchain, langchain-openai, langchain-ollama)
+- Firebase Admin SDK
+- FAISS for vector search
+- Flask for API endpoints
+- PyPDF2 and Tesseract for document processing
+- Pandas for data manipulation
+
+## Testing
+Run tests using pytest:
+```bash
+pytest
+```
+
+For coverage report:
+```bash
+coverage run -m pytest
+coverage report
+```
+
+## Contributing
+Please refer to CONTRIBUTING.md for guidelines on contributing to this project.
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxRAG.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxRAG?ref=badge_large)
