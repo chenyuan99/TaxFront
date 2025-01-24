@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Auth } from './components/Auth';
-import { Dashboard } from './components/Dashboard';
-import { AccountantDashboard } from './components/AccountantDashboard';
-import { TermsOfService } from './components/TermsOfService';
-import { Privacy } from './components/Privacy';
-import { Contact } from './components/Contact';
-import { Profile } from './components/Profile';
-import { About } from './components/About';
-import { TaxCalculator } from './components/TaxCalculator';
-import { TaxForms } from './components/TaxForms';
-import { CookieBanner } from './components/CookieBanner';
-import { auth } from './firebase';
+import { Analytics } from "@vercel/analytics/react";
+import { Auth } from './components/Auth.tsx';
+import { Dashboard } from './components/Dashboard.tsx';
+import { AccountantDashboard } from './components/AccountantDashboard.tsx';
+import { TermsOfService } from './components/TermsOfService.tsx';
+import { Privacy } from './components/Privacy.tsx';
+import { Contact } from './components/Contact.tsx';
+import { Profile } from './components/Profile.tsx';
+import { About } from './components/About.tsx';
+import { TaxCalculator } from './components/TaxCalculator.tsx';
+import { TaxForms } from './components/TaxForms.tsx';
+import { CookieBanner } from './components/CookieBanner.tsx';
+import { auth } from './firebase.ts';
 import { User } from 'firebase/auth';
 import { Chat }  from "./components/Chat.tsx";
 import {Footer} from "./components/Footer.tsx";
@@ -63,6 +64,7 @@ export default function App() {
             <Chat />
             <Footer />
             <CookieBanner />
+            <Analytics />
         </BrowserRouter>
     );
 }

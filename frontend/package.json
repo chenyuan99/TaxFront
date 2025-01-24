@@ -12,6 +12,7 @@
   "dependencies": {
     "@intercom/messenger-js-sdk": "^0.0.14",
     "@mediapipe/tasks-genai": "^0.10.18",
+    "@vercel/analytics": "^1.4.1",
     "chrome-types": "^0.1.316",
     "date-fns": "^3.3.1",
     "firebase": "^10.8.0",
