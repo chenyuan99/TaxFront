@@ -1,3 +1,31 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+.nyc_output
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Production
+build
+dist
+dist-ssr
+*.local
+
 # Logs
 logs
 *.log
@@ -7,15 +35,48 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+ENV/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-adminsdk.json
+.runtimeconfig.json
+ui-debug.log
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+!.vscode/settings.json
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
@@ -23,6 +84,11 @@ dist-ssr
 *.sln
 *.sw?
 
-backend/.env
-.idea
-venv
+# Build artifacts
+*.tsbuildinfo
+.next
+out
+
+# Cache
+.eslintcache
+.stylelintcache
