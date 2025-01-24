@@ -1,0 +1,161 @@
+11/14/24, 4:39 PM Careers at Apple AIML - Software Engineer, Machine Learning Platform & Infrastructure - Careers at Apple
+Work at Apple Life at Apple Profile Sign In Search
+AIML - Software Engineer, Machine Learning
+Platform & Infrastructure
+Seattle, Washington, United States
+Machine Learning and AI
+Submit Resume
+
+Back to search results
+33%
+Resume Match
+2 of 6 keywords are present in your resume Simplify
+Summary
+Posted: Oct 16, 2024
+Role Number:200573737
+Imagine what you could do here. At Apple, great ideas have a way of becoming great products,
+services, and customer experiences very quickly. Bring passion and dedication to your job and there’s
+no telling what you could accomplish.
+Do you want to make Siri and Apple products smarter for our users? The Information Intelligence teams
+are building groundbreaking technology for algorithmic search, machine learning, natural language
+processing, and artificial intelligence. The features we build are redefining how hundreds of millions of
+people use their computers and mobile devices to search and find what they are looking for. Our
+universal search engine powers search features across a variety of Apple products, including Siri,
+Spotlight, Safari, Messages and Lookup.
+As part of this group, you will work with one of the most exciting high performance computing
+environments, with petabytes of data, millions of queries per second, and have an opportunity to
+imagine and build products that delight our customers every single day.
+Description We design, build and maintain infrastructure to support features that empower billions of Apple
+users. Our team processes billions of requests every day across our web crawl stack. We rely on our
+microservice based architecture to support multimodal crawl which allows us to download billions of
+records to support various search features across Apple. We take full end-to-end ownership of our
+services, driving them through every stage meticulously, encompassing conception, design,
+implementation, deployment, and maintenance. As a result, each one of us takes our responsibilities
+seriously. In this team, you’ll have the opportunity to work on incredibly complex large scale systems
+with trillions of records and petabytes of data.
+https://jobs.apple.com/en-us/details/200573737/aiml-software-engineer-machine-learning-platform-infrastructure 1/3
+11/14/24, 4:39 PM Minimum
+Qualifications
+Preferred
+Qualifications
+Pay & Benefits AIML - Software Engineer, Machine Learning Platform & Infrastructure - Careers at Apple
+BS or MS in Computer Science or equivalent experience
+Strong coding skills and experience with data structures and algorithms
+Experience designing and building scalable distributed services
+Experience with petabyte scale data processing & building data pipelines
+Experience with AWS Services such as Amazon S3, EC2, EKS
+Excellent interpersonal skills able to work independently as well as cross-functionally
+Experience in Web Crawl is a plus
+Excellent interpersonal skills able to work independently as well as in a team
+At Apple, base pay is one part of our total compensation package and is determined within a range.
+This provides the opportunity to progress as you grow and develop within a role. The base pay range
+for this role is between $135,400 and $250,600, and your base pay will depend on your skills,
+qualifications, experience, and location.
+Apple employees also have the opportunity to become an Apple shareholder through participation in
+Apple’s discretionary employee stock programs. Apple employees are eligible for discretionary
+restricted stock unit awards, and can purchase Apple stock at a discount if voluntarily participating in
+Apple’s Employee Stock Purchase Plan. You’ll also receive benefits including: Comprehensive
+medical and dental coverage, retirement benefits, a range of discounted products and free services,
+and for formal education related to advancing your career at Apple, reimbursement for certain
+educational expenses — including tuition. Additionally, this role might be eligible for discretionary
+bonuses or commission payments as well as relocation. Learn more about Apple Benefits.
+Note: Apple benefit, compensation and employee stock programs are subject to eligibility
+requirements and other terms of the applicable plan or program.
+Apple is an equal opportunity employer that is committed to inclusion and diversity. We take
+affirmative action to ensure equal opportunity for all applicants without regard to race, color, religion,
+sex, sexual orientation, gender identity, national origin, disability, Veteran status, or other legally
+protected characteristics. Learn more about your EEO rights as an applicant.
+Submit Resume
+
+Back to search results
+See all roles in Seattle
+
+https://jobs.apple.com/en-us/details/200573737/aiml-software-engineer-machine-learning-platform-infrastructure 2/3
+11/14/24, 4:39 PM AIML - Software Engineer, Machine Learning Platform & Infrastructure - Careers at Apple
+Apple is an equal opportunity employer that is committed to inclusion and diversity. We take affirmative action to ensure equal opportunity for all applicants without regard to
+race, color, religion, sex, sexual orientation, gender identity, national origin, disability, Veteran status, or other legally protected characteristics. Learn more about your EEO rights
+as an applicant.
+Apple will not discriminate or retaliate against applicants who inquire about, disclose, or discuss their compensation or that of other applicants. Learn more.
+Apple will consider for employment all qualified applicants with criminal histories in a manner consistent with applicable law. If you’re applying for a position in San Francisco,
+review the guidelines applicable in your area.
+Apple participates in the E-Verify program in certain locations as required by law. Learn more about the E-Verify program.
+Apple is committed to working with and providing reasonable accommodation to applicants with physical and mental disabilities. Learn more.
+Apple is a drug-free workplace. Learn more.
+Careers at Apple Careers at Apple
+Shop and Learn
+Account
+Store
+Mac
+iPad
+iPhone
+Watch
+Vision
+AirPods
+TV & Home
+AirTag
+Accessories
+Gift Cards
+Apple Wallet
+Wallet
+Apple Card
+Apple Pay
+Apple Cash
+Apple Store
+Manage Your Apple ID
+Find a Store
+Apple Store Account
+Genius Bar
+iCloud.com
+Entertainment
+Apple One
+Apple TV+
+Apple Music
+Apple Arcade
+Apple Fitness+
+Apple News+
+Apple Podcasts
+Apple Books
+App Store
+Today at Apple
+Group Reservations
+Apple Camp
+Apple Store App
+Certified Refurbished
+Apple Trade In
+Financing
+Carrier Deals at Apple
+Order Status
+Shopping Help
+More ways to shop: Find an Apple Store or other retailer near you. Or call 1-800-MY-APPLE.
+For Business
+Apple and Business
+Shop for Business
+For Education
+Apple and Education
+Shop for K-12
+Shop for College
+For Healthcare
+Apple in Healthcare
+Health on Apple Watch
+Health Records on iPhone
+For Government
+Shop for Government
+Shop for Veterans and Military
+Apple Values
+Accessibility
+Education
+Environment
+Inclusion and Diversity
+Privacy
+Racial Equity and Justice
+Supply Chain
+About Apple
+Newsroom
+Apple Leadership
+Career Opportunities
+Investors
+Ethics & Compliance
+Events
+Contact Apple
+Copyright © 2024 Apple Inc. All rights reserved. Privacy Policy Terms of Use Sales and Refunds Legal Site Map United States
+https://jobs.apple.com/en-us/details/200573737/aiml-software-engineer-machine-learning-platform-infrastructure 3/3

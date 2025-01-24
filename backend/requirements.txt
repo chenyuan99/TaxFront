@@ -1,0 +1,25 @@
+langchain[web]
+langchain
+langchain-openai
+langchain-ollama
+langchain-google-firestore
+langchain-google-vertexai
+faiss-cpu
+flask
+ollama  # If necessary for Ollama support
+firebase_admin
+firebase_functions
+google-cloud-firestore
+PyPDF2
+pytesseract
+Pillow
+pandas
+openpyxl
+python-dotenv
+google-cloud-aiplatform
+httpx==0.27.2
+flake8
+pytest
+jsonschema
+coverage
+black

@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "TaxFront",
+  "description": "Base Level Extension",
+  "version": "1.0",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "taxfront_extensions.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.irs.gov/pub/irs-pdf/*"],
+      "css": ["my-styles.css"],
+      "js": ["content-script.js"]
+    }
+  ],
+
+}

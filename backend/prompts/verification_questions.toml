@@ -1,0 +1,49 @@
+title = "verification questions"
+
+[questions]
+[questions.q1]
+prompt = "Did I capture all my income?"
+context = """
+As with most things associated with taxes, the sensible starting point is usually income.
+When filing your taxes it’s imperative to ensure you’re not omitting any of the income you generated during the year.
+For a freelancer, the majority of your earnings should be reflected on the 1099 forms supplied by your clients.
+A 1099 outlines the amount of money a client paid you for services rendered.
+Unfortunately, you can’t fully rely on 1099’s to determine your total income.
+A client may forget to send one or perhaps you’ve earned some revenue from outside sources that won’t be reflected on
+a 1099 (W-2 wages from a second job, dividends from investments, or that $50 royalty check from that time you were an
+extra in “10 Things I Hate About You”). So what is the surefire way to ensure you’re capturing all the income that
+needs to be reflected on your income taxes? My suggestion is to go straight to the source: your bank account. Open your
+Lili account, go to your transactions (you can use the Money Transfers and Check Deposits filters) to see exactly what
+ money hit your account, and reconcile that with 1099’s, check stubs, and other supporting documentation to ensure
+ you’re including all your income and there are no discrepancies.
+"""
+
+[questions.q2]
+prompt = "Did I contribute towards my retirement this year?"
+context = """
+It doesn’t show up on a debit card statement and can often be overlooked, which is why it’s important to consider retirement plan contributions when filing your taxes. Contributions to specific types of retirement accounts, Solo 401Ks and SEP IRAs, can have a notable tax effect: contributions to Solo 401Ks and SEP IRAs are deductible from your gross income. Therefore, by accurately reporting them on your tax return you can significantly decrease your taxable income.
+"""
+
+[questions.q3]
+prompt = "Did I include my brokerage account?"
+context = """
+With the proliferation of zero trading fee, tech enabled trading platforms, and an increasing interest in stock trading, more and more Americans are now looking to brokerage accounts as a store of wealth. And while brokerage accounts are a great way to make your money work for you, the fact of the matter is these accounts hold securities which are being bought and sold for gains and losses and sometimes offer dividends, meaning they can generate income which need to be reflected on your tax returns.
+
+The institution you have your account with will send you a form 1099-B with all the information you need. Much like the 1099 received from your clients, it reflects the amount you made on the sale of stocks and other securities and other relevant information such as the price you bought the security for, how long you held it, and if any taxes were already paid on your behalf by your account provider. You can then use this information to fill out Schedule D on your Form 1040 Income Tax Filing.
+"""
+
+[questions.q4]
+prompt = "Do I have all the forms I need to file?"
+context = """
+The last, and arguably most crucial, question you should ask yourself prior to filing revolves around the actual forms you’ll be filing with the IRS. As a self-employed business owner, at minimum you’ll need to file the following forms:
+
+Form 1040 – The form that determines your federal income tax for the year
+Schedule SE – The form used to determine your Self-Employment Tax
+Schedule C – The form used to deduct your business expenses
+Beyond these, there are a number of different forms and filing requirements that may be relevant based on your specific tax and income situation. For instance, depending on where you live, you may need to file state taxes. If you have child care expenses, you might want to file form 2441 to claim a dependent care credit. The best way to go about it is to sit down and list out two categories:
+
+The first is any and all income streams you received money from outside of your core business. This could include things like W-2 employment, inheritance, royalties, or proceeds from a trust.
+The second is a list of any major life events that may have had a financial effect on you over the past year. This could include things like selling a house or vehicle or having a child.
+Based on the information uncovered performing this exercise, you can reference our tax prep checklist to ensure you’re compiling the tax documentation necessary or find out what questions to ask your CPA. Either way, taking the time to ask yourself if you’re really looking at all the aspects of your life that had an impact on your business finances, while seemingly simplistic, can save you a significant amount of money in your tax filing process.
+"""
+

@@ -1,0 +1,19 @@
+{
+  "document_id": "string",          // Unique identifier for the document
+  "title": "string",                // Title of the document
+  "author": "string",               // Author of the document
+  "date_created": "string",         // Date the document was created (ISO 8601 format)
+  "date_modified": "string",        // Date the document was last modified (ISO 8601 format)
+  "tags": ["string"],               // List of tags associated with the document
+  "version": "string",              // Version of the document
+  "language": "string",             // Language of the document
+  "summary": "string",              // Brief summary of the document
+  "keywords": ["string"],           // List of keywords relevant to the document
+  "source": "string",               // Source of the document (e.g., URL or file path)
+  "related_documents": ["string"],  // List of related document IDs
+  "status": "string",               // Status of the document (e.g., draft, final)
+  "access_level": "string",         // Access level (e.g., public, private)
+  "category": "string",             // Category of the document (e.g., tax form, instruction)
+  "content_type": "string",         // Type of content (e.g., text, PDF)
+  "checksum": "string"              // Checksum for verifying document integrity
+}
