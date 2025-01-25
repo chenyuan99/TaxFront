@@ -129,24 +129,6 @@ export function TaxCalculator() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <nav className="bg-white shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                            <Shield className="h-8 w-8 text-blue-600" />
-                            <span className="ml-2 text-xl font-bold text-gray-900">TaxFront</span>
-                        </div>
-                        <Link
-                            to="/"
-                            className="inline-flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to Home
-                        </Link>
-                    </div>
-                </div>
-            </nav>
-
             <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
                     <div className="flex items-center mb-6">

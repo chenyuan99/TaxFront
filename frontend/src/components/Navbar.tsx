@@ -15,6 +15,8 @@ export function Navbar() {
     const navigation = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard },
         { name: 'Jobs', href: '/jobs', icon: Briefcase },
+        { name: 'Calculator', href: '/calculator', icon: null },
+        { name: 'Forms', href: '/forms', icon: null },
     ];
 
     useEffect(() => {
@@ -47,28 +49,46 @@ export function Navbar() {
                             <span className="text-xl font-bold text-[#00AAFF]">TaxFront</span>
                         </div>
                         <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <Link
-                                to="/dashboard"
-                                className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                                    location.pathname === '/dashboard'
-                                        ? 'text-[#00395D] border-b-2 border-[#00395D]'
-                                        : 'text-gray-500 hover:text-[#00395D] hover:border-[#00AAFF]'
-                                }`}
-                            >
-                                <LayoutDashboard className="w-4 h-4 mr-2" />
-                                Dashboard
-                            </Link>
-                            <Link
-                                to="/jobs"
-                                className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                                    location.pathname === '/jobs'
-                                        ? 'text-[#00395D] border-b-2 border-[#00395D]'
-                                        : 'text-gray-500 hover:text-[#00395D] hover:border-[#00AAFF]'
-                                }`}
-                            >
-                                <Briefcase className="w-4 h-4 mr-2" />
-                                Jobs
-                            </Link>
+                            {navigation.map((item) => (
+                                <Link
+                                    key={item.name}
+                                    to={item.href}
+                                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                                        location.pathname === item.href
+                                            ? 'text-[#00395D] border-b-2 border-[#00395D]'
+                                            : 'text-gray-500 hover:text-[#00395D] hover:border-[#00AAFF]'
+                                    }`}
+                                >
+                                    {item.icon ? (
+                                        <item.icon className="w-4 h-4 mr-2" />
+                                    ) : (
+                                        <svg
+                                            className="w-4 h-4 mr-2"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            {item.name === 'Calculator' ? (
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                />
+                                            ) : (
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                />
+                                            )}
+                                        </svg>
+                                    )}
+                                    {item.name}
+                                </Link>
+                            ))}
                             <a
                                 href="https://github.com/chenyuan99/TaxFront/issues"
                                 target="_blank"
@@ -165,34 +185,49 @@ export function Navbar() {
             {isOpen && (
                 <div className="sm:hidden">
                     <div className="pt-2 pb-3 space-y-1">
-                        <Link
-                            to="/dashboard"
-                            className={`block pl-3 pr-4 py-2 text-base font-medium ${
-                                location.pathname === '/dashboard'
-                                    ? 'bg-[#E5F4FF] border-[#00395D] text-[#00395D]'
-                                    : 'border-transparent text-gray-500 hover:bg-[#E5F4FF] hover:border-[#00AAFF] hover:text-[#00395D]'
-                            }`}
-                            onClick={() => setIsOpen(false)}
-                        >
-                            <div className="flex items-center">
-                                <LayoutDashboard className="h-5 w-5 mr-2" />
-                                Dashboard
-                            </div>
-                        </Link>
-                        <Link
-                            to="/jobs"
-                            className={`block pl-3 pr-4 py-2 text-base font-medium ${
-                                location.pathname === '/jobs'
-                                    ? 'bg-[#E5F4FF] border-[#00395D] text-[#00395D]'
-                                    : 'border-transparent text-gray-500 hover:bg-[#E5F4FF] hover:border-[#00AAFF] hover:text-[#00395D]'
-                            }`}
-                            onClick={() => setIsOpen(false)}
-                        >
-                            <div className="flex items-center">
-                                <Briefcase className="h-5 w-5 mr-2" />
-                                Jobs
-                            </div>
-                        </Link>
+                        {navigation.map((item) => (
+                            <Link
+                                key={item.name}
+                                to={item.href}
+                                className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                                    location.pathname === item.href
+                                        ? 'bg-[#E5F4FF] border-[#00395D] text-[#00395D]'
+                                        : 'border-transparent text-gray-500 hover:bg-[#E5F4FF] hover:border-[#00AAFF] hover:text-[#00395D]'
+                                }`}
+                                onClick={() => setIsOpen(false)}
+                            >
+                                <div className="flex items-center">
+                                    {item.icon ? (
+                                        <item.icon className="h-5 w-5 mr-2" />
+                                    ) : (
+                                        <svg
+                                            className="w-5 h-5 mr-2"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            {item.name === 'Calculator' ? (
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                />
+                                            ) : (
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                />
+                                            )}
+                                        </svg>
+                                    )}
+                                    {item.name}
+                                </div>
+                            </Link>
+                        ))}
                     </div>
                     <div className="pt-4 pb-3 border-t border-gray-200">
                         <div className="flex items-center px-4">

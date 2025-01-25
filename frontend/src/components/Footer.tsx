@@ -46,16 +46,6 @@ export function Footer() {
                                     Contact
                                 </Link>
                             </li>
-                            <li>
-                                <Link to="/calculator" className="text-gray-600 hover:text-[#00AAFF]">
-                                    Tax Calculator
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/forms" className="text-gray-600 hover:text-[#00AAFF]">
-                                    Tax Forms
-                                </Link>
-                            </li>
                         </ul>
                     </div>
 
