@@ -4,6 +4,7 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront?ref=badge_shield)
 [![Security Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront.svg?type=shield&issueType=security)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront?ref=badge_shield&issueType=security)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/chenyuan99/TaxFront/frontend.yml)](https://github.com/chenyuan99/TaxFront/actions)
+[![codecov](https://codecov.io/gh/chenyuan99/TaxFront/branch/main/graph/badge.svg)](https://codecov.io/gh/chenyuan99/TaxFront)
 
 ## Description
 TaxFront is a modern, secure web application designed to streamline tax document management. It provides an intuitive interface for users to upload, organize, and track their tax documents, with built-in security features and real-time updates.
