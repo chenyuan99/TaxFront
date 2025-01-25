@@ -11,48 +11,48 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div>
                         <div className="flex items-center">
-                            <Shield className="h-8 w-8 text-blue-600" />
-                            <span className="ml-2 text-xl font-bold text-gray-900">TaxFront</span>
+                            <Shield className="h-8 w-8 text-[#00AAFF]" />
+                            <span className="ml-2 text-xl font-bold text-[#00AAFF]">TaxFront</span>
                         </div>
-                        <p className="mt-4 text-gray-600 text-sm">
+                        <p className="mt-4 text-[#00395D] text-sm">
                             Simplifying tax document management with secure, intelligent solutions.
                         </p>
                         <div className="mt-4 flex space-x-4">
-                            <a href="https://facebook.com" className="text-gray-400 hover:text-gray-500">
+                            <a href="https://facebook.com" className="text-gray-400 hover:text-[#00AAFF]">
                                 <Facebook className="h-5 w-5" />
                             </a>
-                            <a href="https://twitter.com" className="text-gray-400 hover:text-gray-500">
+                            <a href="https://twitter.com" className="text-gray-400 hover:text-[#00AAFF]">
                                 <Twitter className="h-5 w-5" />
                             </a>
-                            <a href="https://linkedin.com" className="text-gray-400 hover:text-gray-500">
+                            <a href="https://linkedin.com" className="text-gray-400 hover:text-[#00AAFF]">
                                 <Linkedin className="h-5 w-5" />
                             </a>
-                            <a href="https://instagram.com" className="text-gray-400 hover:text-gray-500">
+                            <a href="https://instagram.com" className="text-gray-400 hover:text-[#00AAFF]">
                                 <Instagram className="h-5 w-5" />
                             </a>
                         </div>
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase">Company</h3>
+                        <h3 className="text-sm font-semibold text-[#00395D] tracking-wider uppercase">Company</h3>
                         <ul className="mt-4 space-y-4">
                             <li>
-                                <Link to="/about" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/about" className="text-gray-600 hover:text-[#00AAFF]">
                                     About Us
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/contact" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/contact" className="text-gray-600 hover:text-[#00AAFF]">
                                     Contact
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/calculator" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/calculator" className="text-gray-600 hover:text-[#00AAFF]">
                                     Tax Calculator
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/forms" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/forms" className="text-gray-600 hover:text-[#00AAFF]">
                                     Tax Forms
                                 </Link>
                             </li>
@@ -60,25 +60,25 @@ export function Footer() {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase">Support</h3>
+                        <h3 className="text-sm font-semibold text-[#00395D] tracking-wider uppercase">Support</h3>
                         <ul className="mt-4 space-y-4">
                             <li>
-                                <Link to="/help" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/help" className="text-gray-600 hover:text-[#00AAFF]">
                                     Help Center
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/faq" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/faq" className="text-gray-600 hover:text-[#00AAFF]">
                                     FAQ
                                 </Link>
                             </li>
                             <li>
-                                <a href="mailto:support@taxfront.com" className="text-gray-600 hover:text-gray-900">
+                                <a href="mailto:support@taxfront.com" className="text-gray-600 hover:text-[#00AAFF]">
                                     Email Support
                                 </a>
                             </li>
                             <li>
-                                <a href="tel:1-800-TAX-FRONT" className="text-gray-600 hover:text-gray-900">
+                                <a href="tel:1-800-TAX-FRONT" className="text-gray-600 hover:text-[#00AAFF]">
                                     1-800-TAX-FRONT
                                 </a>
                             </li>
@@ -86,25 +86,25 @@ export function Footer() {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase">Legal</h3>
+                        <h3 className="text-sm font-semibold text-[#00395D] tracking-wider uppercase">Legal</h3>
                         <ul className="mt-4 space-y-4">
                             <li>
-                                <Link to="/privacy" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/privacy" className="text-gray-600 hover:text-[#00AAFF]">
                                     Privacy Policy
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/terms" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/terms" className="text-gray-600 hover:text-[#00AAFF]">
                                     Terms of Service
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/security" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/security" className="text-gray-600 hover:text-[#00AAFF]">
                                     Security
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/compliance" className="text-gray-600 hover:text-gray-900">
+                                <Link to="/compliance" className="text-gray-600 hover:text-[#00AAFF]">
                                     Compliance
                                 </Link>
                             </li>
@@ -113,8 +113,8 @@ export function Footer() {
                 </div>
 
                 <div className="mt-8 pt-8 border-t border-gray-200">
-                    <p className="text-sm text-gray-600 text-center">
-                        © {currentYear} TaxFront. All rights reserved.
+                    <p className="text-sm text-[#00395D] text-center">
+                        &copy; {currentYear} TaxFront. All rights reserved.
                     </p>
                 </div>
             </div>
