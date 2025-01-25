@@ -1,25 +1,54 @@
-import {Link} from 'react-router-dom';
-import {Shield, ArrowLeft, Target, Users, Award, Briefcase, Heart, Globe} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Shield, ArrowLeft, Target, Users, Award, Briefcase, Heart, Globe, CheckCircle2, Zap, Lock, ChartBar, FileText, Cloud } from 'lucide-react';
+import { useState } from 'react';
 
 export function About() {
+    const [activeTab, setActiveTab] = useState('overview');
+
     const team = [
         {
             name: 'Emily Chen',
             role: 'CEO & Co-founder',
             image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=300&h=300&fit=crop&crop=faces&auto=format',
-            bio: '15+ years in fintech and tax automation'
+            bio: '15+ years in fintech and tax automation',
+            linkedin: 'https://linkedin.com/in/emilychen'
         },
         {
             name: 'Marcus Rodriguez',
             role: 'CTO',
             image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=faces&auto=format',
-            bio: 'Former Senior Engineer at Google Cloud'
+            bio: 'Former Senior Engineer at Google Cloud',
+            linkedin: 'https://linkedin.com/in/marcusrodriguez'
         },
         {
-            name: 'Sarah Williams',
+            name: 'Yaokun Shen',
             role: 'Head of Tax Services',
             image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=faces&auto=format',
-            bio: 'Certified CPA with 12 years experience'
+            bio: 'Certified CPA with 12 years experience',
+            linkedin: 'https://linkedin.com/in/yaokunchen'
+        }
+    ];
+
+    const features = [
+        {
+            icon: Lock,
+            title: 'Enterprise Security',
+            description: 'Bank-grade encryption and multi-factor authentication to protect your sensitive data'
+        },
+        {
+            icon: Cloud,
+            title: 'Cloud Integration',
+            description: 'Seamless integration with major cloud storage providers and financial platforms'
+        },
+        {
+            icon: FileText,
+            title: 'Smart Documents',
+            description: 'AI-powered document processing and automatic form recognition'
+        },
+        {
+            icon: ChartBar,
+            title: 'Analytics',
+            description: 'Real-time insights and tax planning recommendations'
         }
     ];
 
@@ -63,106 +92,183 @@ export function About() {
             description: 'Successfully launched our core platform, serving over 10,000 clients'
         },
         {
-            year: '2023',
-            title: 'Industry Recognition',
-            description: 'Named "Most Innovative Tax Tech Solution" by Finance Monthly'
+            year: '2024',
+            title: 'Enterprise Partnership',
+            description: 'Strategic partnership with Barclays to provide enhanced financial services'
         }
+    ];
+
+    const stats = [
+        { label: 'Active Users', value: '50K+', icon: Users },
+        { label: 'Documents Processed', value: '1M+', icon: FileText },
+        { label: 'Countries Served', value: '30+', icon: Globe },
+        { label: 'Platform Uptime', value: '99.9%', icon: Cloud }
     ];
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <nav className="bg-white shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                            <Shield className="h-8 w-8 text-blue-600"/>
-                            <span className="ml-2 text-xl font-bold text-gray-900">TaxFront</span>
+            {/* Hero Section with Video Background */}
+            <div className="relative bg-[#00395D] overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#00395D] to-[#00AAFF] opacity-90"></div>
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+                    <div className="text-center">
+                        <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
+                            Transforming Tax Management
+                        </h1>
+                        <p className="mt-3 max-w-md mx-auto text-xl text-gray-100 sm:text-2xl md:mt-5 md:max-w-3xl">
+                            Empowering businesses and individuals with intelligent tax solutions
+                        </p>
+                        <div className="mt-8 flex justify-center space-x-4">
+                            <Link
+                                to="/register"
+                                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-[#00395D] bg-white hover:bg-gray-50"
+                            >
+                                Get Started
+                            </Link>
+                            <Link
+                                to="/contact"
+                                className="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-[#00395D]/50"
+                            >
+                                Contact Sales
+                            </Link>
                         </div>
-                        <Link
-                            to="/"
-                            className="inline-flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2"/>
-                            Back to Home
-                        </Link>
                     </div>
                 </div>
-            </nav>
+            </div>
 
-            <main>
-                {/* Hero Section */}
-                <div className="relative bg-white overflow-hidden">
-                    <div className="max-w-7xl mx-auto">
-                        <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:pb-28 xl:pb-32">
+            {/* Navigation Tabs */}
+            <div className="border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                        {['overview', 'features', 'team', 'values'].map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`${
+                                    activeTab === tab
+                                        ? 'border-[#00AAFF] text-[#00AAFF]'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm capitalize`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+            </div>
+
+            {/* Features Section */}
+            <div className={`py-16 bg-white ${activeTab !== 'features' && 'hidden'}`}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-bold text-[#00395D]">Why Choose TaxFront</h2>
+                        <p className="mt-4 text-xl text-gray-600">
+                            Experience the future of tax document management
+                        </p>
+                    </div>
+
+                    <div className="mt-12 grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+                        {features.map((feature, index) => (
                             <div
-                                className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-                                <div className="text-center lg:text-left">
-                                    <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                                        <span className="block">Revolutionizing</span>
-                                        <span className="block text-blue-600">Tax Management</span>
-                                    </h1>
-                                    <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                                        We're on a mission to make tax document management simple, secure, and efficient
-                                        for businesses and individuals alike.
-                                    </p>
+                                key={index}
+                                className="relative p-8 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                            >
+                                <div className="flex-1">
+                                    <feature.icon className="h-12 w-12 text-[#00AAFF]" />
+                                    <h3 className="mt-4 text-xl font-semibold text-[#00395D]">{feature.title}</h3>
+                                    <p className="mt-4 text-gray-500">{feature.description}</p>
                                 </div>
                             </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
+            </div>
 
-                {/* Values Section */}
-                <div className="py-16 bg-gray-50">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center">
-                            <h2 className="text-3xl font-extrabold text-gray-900">Our Values</h2>
-                            <p className="mt-4 text-xl text-gray-600">
-                                The principles that guide everything we do
-                            </p>
-                        </div>
+            {/* Team Section */}
+            <div className={`py-16 bg-gray-50 ${activeTab !== 'team' && 'hidden'}`}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-bold text-[#00395D]">Meet Our Team</h2>
+                        <p className="mt-4 text-xl text-gray-600">
+                            Expert professionals dedicated to your success
+                        </p>
+                    </div>
 
-                        <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                            {values.map((value, index) => (
-                                <div
-                                    key={index}
-                                    className="relative bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                                >
-                                    <div className="absolute -top-4 -left-4 bg-blue-600 rounded-lg p-3">
-                                        <value.icon className="h-6 w-6 text-white"/>
-                                    </div>
-                                    <h3 className="mt-4 text-xl font-semibold text-gray-900">{value.title}</h3>
-                                    <p className="mt-2 text-gray-600">{value.description}</p>
+                    <div className="mt-12 grid gap-8 grid-cols-1 md:grid-cols-3">
+                        {team.map((member, index) => (
+                            <div 
+                                key={index} 
+                                className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                            >
+                                <div className="relative">
+                                    <img
+                                        className="w-full h-64 object-cover"
+                                        src={member.image}
+                                        alt={member.name}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                                 </div>
-                            ))}
-                        </div>
+                                <div className="p-6">
+                                    <h3 className="text-xl font-semibold text-[#00395D]">{member.name}</h3>
+                                    <p className="text-[#00AAFF] font-medium">{member.role}</p>
+                                    <p className="mt-3 text-gray-500">{member.bio}</p>
+                                    <a
+                                        href={member.linkedin}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-4 inline-flex items-center text-[#00AAFF] hover:text-[#00395D]"
+                                    >
+                                        Connect on LinkedIn
+                                        <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />
+                                    </a>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
+            </div>
 
-                {/* Team Section */}
-                <div className="py-16 bg-white">
+            {/* Values Section */}
+            <div className={`py-16 bg-white ${activeTab !== 'values' && 'hidden'}`}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-bold text-[#00395D]">Our Values</h2>
+                        <p className="mt-4 text-xl text-gray-600">
+                            Principles that guide our mission
+                        </p>
+                    </div>
+
+                    <div className="mt-12 grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                        {values.map((value, index) => (
+                            <div 
+                                key={index} 
+                                className="text-center p-8 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                            >
+                                <div className="flex justify-center">
+                                    <value.icon className="h-12 w-12 text-[#00AAFF]" />
+                                </div>
+                                <h3 className="mt-4 text-lg font-semibold text-[#00395D]">{value.title}</h3>
+                                <p className="mt-2 text-gray-500">{value.description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Overview Section */}
+            <div className={`${activeTab !== 'overview' && 'hidden'}`}>
+                {/* Stats Grid */}
+                <div className="bg-white py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center">
-                            <h2 className="text-3xl font-extrabold text-gray-900">Meet Our Team</h2>
-                            <p className="mt-4 text-xl text-gray-600">
-                                The experts behind TaxFront's success
-                            </p>
-                        </div>
-
-                        <div className="mt-12 grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
-                            {team.map((member, index) => (
-                                <div key={index} className="flex flex-col items-center">
-                                    <div className="relative">
-                                        <img
-                                            className="w-48 h-48 rounded-full object-cover"
-                                            src={member.image}
-                                            alt={member.name}
-                                        />
-                                        <div
-                                            className="absolute inset-0 rounded-full bg-gradient-to-b from-transparent to-black/30"></div>
-                                    </div>
-                                    <h3 className="mt-6 text-xl font-semibold text-gray-900">{member.name}</h3>
-                                    <p className="text-blue-600">{member.role}</p>
-                                    <p className="mt-2 text-center text-gray-600">{member.bio}</p>
+                        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                            {stats.map((stat, index) => (
+                                <div 
+                                    key={index}
+                                    className="bg-gray-50 rounded-2xl p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                                >
+                                    <stat.icon className="h-8 w-8 text-[#00AAFF] mx-auto" />
+                                    <p className="mt-4 text-3xl font-bold text-[#00395D]">{stat.value}</p>
+                                    <p className="mt-1 text-gray-500">{stat.label}</p>
                                 </div>
                             ))}
                         </div>
@@ -173,28 +279,28 @@ export function About() {
                 <div className="py-16 bg-gray-50">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
-                            <h2 className="text-3xl font-extrabold text-gray-900">Our Journey</h2>
+                            <h2 className="text-3xl font-bold text-[#00395D]">Our Journey</h2>
                             <p className="mt-4 text-xl text-gray-600">
-                                Key milestones in our growth story
+                                Key milestones in our growth
                             </p>
                         </div>
 
                         <div className="mt-12 relative">
-                            <div className="absolute left-1/2 transform -translate-x-px h-full w-0.5 bg-gray-200"></div>
+                            <div className="absolute top-0 left-1/2 w-0.5 h-full bg-[#00AAFF] -ml-0.5"></div>
                             <div className="space-y-12">
                                 {milestones.map((milestone, index) => (
-                                    <div key={index} className="relative">
-                                        <div className="flex items-center">
-                                            <div className="flex-1 text-right pr-8">
-                                                <h3 className="text-xl font-semibold text-gray-900">{milestone.year}</h3>
-                                                <h4 className="text-lg font-medium text-blue-600">{milestone.title}</h4>
-                                                <p className="mt-2 text-gray-600">{milestone.description}</p>
-                                            </div>
-                                            <div className="absolute left-1/2 transform -translate-x-1/2">
-                                                <div
-                                                    className="w-4 h-4 rounded-full bg-blue-600 border-4 border-white"></div>
-                                            </div>
-                                            <div className="flex-1 pl-8"></div>
+                                    <div 
+                                        key={index} 
+                                        className={`relative ${
+                                            index % 2 === 0 ? 'md:ml-auto md:pl-8' : 'md:mr-auto md:pr-8'
+                                        } md:w-1/2`}
+                                    >
+                                        <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
+                                            <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-[#00AAFF] text-white font-semibold text-sm absolute top-6 -left-4">
+                                                {milestone.year.slice(-2)}
+                                            </span>
+                                            <h3 className="text-lg font-semibold text-[#00395D]">{milestone.title}</h3>
+                                            <p className="mt-2 text-gray-500">{milestone.description}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -202,46 +308,33 @@ export function About() {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Global Impact Section */}
-                <div className="py-16 bg-white">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
-                            <div>
-                                <h2 className="text-3xl font-extrabold text-gray-900">
-                                    Global Impact
-                                </h2>
-                                <p className="mt-4 text-lg text-gray-600">
-                                    We're proud to serve clients across the globe, helping businesses and individuals
-                                    manage their tax documents efficiently and securely.
-                                </p>
-                                <div className="mt-8 grid grid-cols-2 gap-6">
-                                    <div className="bg-gray-50 rounded-lg p-6">
-                                        <div className="text-3xl font-bold text-blue-600">50K+</div>
-                                        <div className="mt-2 text-gray-600">Active Users</div>
-                                    </div>
-                                    <div className="bg-gray-50 rounded-lg p-6">
-                                        <div className="text-3xl font-bold text-blue-600">30+</div>
-                                        <div className="mt-2 text-gray-600">Countries Served</div>
-                                    </div>
-                                    <div className="bg-gray-50 rounded-lg p-6">
-                                        <div className="text-3xl font-bold text-blue-600">1M+</div>
-                                        <div className="mt-2 text-gray-600">Documents Processed</div>
-                                    </div>
-                                    <div className="bg-gray-50 rounded-lg p-6">
-                                        <div className="text-3xl font-bold text-blue-600">99.9%</div>
-                                        <div className="mt-2 text-gray-600">Uptime</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mt-10 lg:mt-0">
-                                <Globe className="mx-auto h-64 w-64 text-blue-600"/>
-                            </div>
+            {/* CTA Section */}
+            <div className="bg-[#00395D]">
+                <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-bold text-white">Ready to Get Started?</h2>
+                        <p className="mt-4 text-xl text-gray-100">
+                            Join thousands of satisfied customers who trust TaxFront
+                        </p>
+                        <div className="mt-8 flex justify-center space-x-4">
+                            <Link
+                                to="/register"
+                                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-[#00395D] bg-white hover:bg-gray-50"
+                            >
+                                Start Free Trial
+                            </Link>
+                            <Link
+                                to="/demo"
+                                className="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-[#00395D]/50"
+                            >
+                                Request Demo
+                            </Link>
                         </div>
                     </div>
                 </div>
-            </main>
-
+            </div>
         </div>
     );
 }
