@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://localhost:5000
+      - VITE_FIREBASE_API_KEY=${FIREBASE_API_KEY}
+      - VITE_FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
+      - VITE_FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - VITE_FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}
+      - VITE_FIREBASE_MESSAGING_SENDER_ID=${FIREBASE_MESSAGING_SENDER_ID}
+      - VITE_FIREBASE_APP_ID=${FIREBASE_APP_ID}
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FIREBASE_CREDENTIALS=${FIREBASE_CREDENTIALS}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules

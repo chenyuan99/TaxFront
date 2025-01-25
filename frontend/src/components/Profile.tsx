@@ -1,278 +1,383 @@
-import {useState, useEffect} from 'react';
-import {Link} from 'react-router-dom';
-import {Shield, ArrowLeft, User, Mail, Lock, Bell, CreditCard, Settings, Save} from 'lucide-react';
-import {auth, db} from '../firebase';
-import {doc, getDoc, updateDoc} from 'firebase/firestore';
-import {UserProfile} from '../types/users';
+import React, { useState, useEffect } from 'react';
+import { auth, db } from '../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { User } from 'firebase/auth';
 
+interface TaxProfile {
+    // Personal Information
+    firstName: string;
+    lastName: string;
+    ssn: string;
+    dateOfBirth: string;
+    occupation: string;
+
+    // Contact Information
+    phoneNumber: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+
+    // Filing Status
+    filingStatus: 'single' | 'married_joint' | 'married_separate' | 'head_household' | 'qualifying_widow';
+    spouseName?: string;
+    spouseSSN?: string;
+
+    // Dependents
+    hasDependents: boolean;
+    numberOfDependents: number;
+
+    // Income Sources
+    employmentIncome: boolean;
+    selfEmploymentIncome: boolean;
+    rentalIncome: boolean;
+    investmentIncome: boolean;
+    cryptoIncome: boolean;
+    otherIncome: boolean;
+
+    // Tax Situations
+    hasHealthInsurance: boolean;
+    hasMortgage: boolean;
+    hasStudentLoans: boolean;
+    hasCharitableDonations: boolean;
+    hasRetirementAccounts: boolean;
+    hasForeignAccounts: boolean;
+    hasStockOptions: boolean;
+
+    // Preferences
+    preferredLanguage: string;
+    receiveUpdates: boolean;
+}
+
+const defaultProfile: TaxProfile = {
+    firstName: '',
+    lastName: '',
+    ssn: '',
+    dateOfBirth: '',
+    occupation: '',
+    phoneNumber: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    filingStatus: 'single',
+    hasDependents: false,
+    numberOfDependents: 0,
+    employmentIncome: false,
+    selfEmploymentIncome: false,
+    rentalIncome: false,
+    investmentIncome: false,
+    cryptoIncome: false,
+    otherIncome: false,
+    hasHealthInsurance: false,
+    hasMortgage: false,
+    hasStudentLoans: false,
+    hasCharitableDonations: false,
+    hasRetirementAccounts: false,
+    hasForeignAccounts: false,
+    hasStockOptions: false,
+    preferredLanguage: 'English',
+    receiveUpdates: true
+};
 
 export function Profile() {
-    const [profile, setProfile] = useState<UserProfile>({
-        displayName: '',
-        email: '',
-        phone: '',
-        notifications: {
-            email: true,
-            sms: true,
-            documents: true,
-            updates: false
-        },
-        subscription: 'basic'
-    });
-    const [isEditing, setIsEditing] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'billing'>('profile');
+    const [user, setUser] = useState<User | null>(null);
+    const [profile, setProfile] = useState<TaxProfile>(defaultProfile);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            const user = auth.currentUser;
-            if (!user) return;
-
-            try {
-                const docRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    setProfile({
-                        ...docSnap.data() as UserProfile,
-                        email: user.email || ''
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching profile:', error);
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            setUser(user);
+            if (user) {
+                await loadProfile(user.uid);
             }
-        };
+            setLoading(false);
+        });
 
-        fetchProfile();
+        return () => unsubscribe();
     }, []);
 
-    const handleSave = async () => {
-        const user = auth.currentUser;
-        if (!user) return;
-
-        setIsSaving(true);
+    const loadProfile = async (userId: string) => {
         try {
-            const docRef = doc(db, 'users', user.uid);
-            await updateDoc(docRef, profile);
-            setIsEditing(false);
+            const docRef = doc(db, 'userProfiles', userId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                setProfile(docSnap.data() as TaxProfile);
+            }
         } catch (error) {
-            console.error('Error updating profile:', error);
-        } finally {
-            setIsSaving(false);
+            console.error('Error loading profile:', error);
+            setMessage({ type: 'error', text: 'Failed to load profile' });
         }
     };
 
-    const handleNotificationChange = (key: keyof UserProfile['notifications']) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) return;
+
+        setSaving(true);
+        try {
+            await setDoc(doc(db, 'userProfiles', user.uid), profile);
+            setMessage({ type: 'success', text: 'Profile saved successfully' });
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            setMessage({ type: 'error', text: 'Failed to save profile' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        const checked = (e.target as HTMLInputElement).checked;
+
         setProfile(prev => ({
             ...prev,
-            notifications: {
-                ...prev.notifications,
-                [key]: !prev.notifications[key]
-            }
+            [name]: type === 'checkbox' ? checked : value
         }));
     };
 
+    if (loading) {
+        return <div className="flex justify-center items-center min-h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>;
+    }
+
+    if (!user) {
+        return <div className="text-center py-12">Please sign in to view your profile.</div>;
+    }
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            <nav className="bg-white shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                            <Shield className="h-8 w-8 text-blue-600"/>
-                            <span className="ml-2 text-xl font-bold text-gray-900">TaxFront</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-3xl mx-auto">
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">Tax Profile</h1>
+
+                {message && (
+                    <div className={`mb-4 p-4 rounded-md ${
+                        message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                    }`}>
+                        {message.text}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* Personal Information */}
+                    <div className="bg-white shadow rounded-lg p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">First Name</label>
+                                <input
+                                    type="text"
+                                    name="firstName"
+                                    value={profile.firstName}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                                <input
+                                    type="text"
+                                    name="lastName"
+                                    value={profile.lastName}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">SSN</label>
+                                <input
+                                    type="password"
+                                    name="ssn"
+                                    value={profile.ssn}
+                                    onChange={handleChange}
+                                    placeholder="XXX-XX-XXXX"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                                <input
+                                    type="date"
+                                    name="dateOfBirth"
+                                    value={profile.dateOfBirth}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                />
+                            </div>
                         </div>
-                        <Link
-                            to="/"
-                            className="inline-flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+                    </div>
+
+                    {/* Filing Status */}
+                    <div className="bg-white shadow rounded-lg p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Filing Status</h2>
+                        <div className="space-y-4">
+                            <select
+                                name="filingStatus"
+                                value={profile.filingStatus}
+                                onChange={handleChange}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                                <option value="single">Single</option>
+                                <option value="married_joint">Married Filing Jointly</option>
+                                <option value="married_separate">Married Filing Separately</option>
+                                <option value="head_household">Head of Household</option>
+                                <option value="qualifying_widow">Qualifying Widow(er)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Income Sources */}
+                    <div className="bg-white shadow rounded-lg p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Income Sources</h2>
+                        <div className="space-y-4">
+                            <div className="flex items-start">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        type="checkbox"
+                                        name="employmentIncome"
+                                        checked={profile.employmentIncome}
+                                        onChange={handleChange}
+                                        className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                    />
+                                </div>
+                                <div className="ml-3 text-sm">
+                                    <label className="font-medium text-gray-700">Employment Income (W-2)</label>
+                                </div>
+                            </div>
+                            <div className="flex items-start">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        type="checkbox"
+                                        name="selfEmploymentIncome"
+                                        checked={profile.selfEmploymentIncome}
+                                        onChange={handleChange}
+                                        className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                    />
+                                </div>
+                                <div className="ml-3 text-sm">
+                                    <label className="font-medium text-gray-700">Self-Employment Income (1099-NEC)</label>
+                                </div>
+                            </div>
+                            <div className="flex items-start">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        type="checkbox"
+                                        name="investmentIncome"
+                                        checked={profile.investmentIncome}
+                                        onChange={handleChange}
+                                        className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                    />
+                                </div>
+                                <div className="ml-3 text-sm">
+                                    <label className="font-medium text-gray-700">Investment Income (1099-B, 1099-DIV)</label>
+                                </div>
+                            </div>
+                            <div className="flex items-start">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        type="checkbox"
+                                        name="cryptoIncome"
+                                        checked={profile.cryptoIncome}
+                                        onChange={handleChange}
+                                        className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                    />
+                                </div>
+                                <div className="ml-3 text-sm">
+                                    <label className="font-medium text-gray-700">Cryptocurrency Transactions</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tax Situations */}
+                    <div className="bg-white shadow rounded-lg p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Tax Situations</h2>
+                        <div className="space-y-4">
+                            <div className="flex items-start">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        type="checkbox"
+                                        name="hasHealthInsurance"
+                                        checked={profile.hasHealthInsurance}
+                                        onChange={handleChange}
+                                        className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                    />
+                                </div>
+                                <div className="ml-3 text-sm">
+                                    <label className="font-medium text-gray-700">Health Insurance (1095-A, B, or C)</label>
+                                </div>
+                            </div>
+                            <div className="flex items-start">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        type="checkbox"
+                                        name="hasMortgage"
+                                        checked={profile.hasMortgage}
+                                        onChange={handleChange}
+                                        className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                    />
+                                </div>
+                                <div className="ml-3 text-sm">
+                                    <label className="font-medium text-gray-700">Mortgage Interest (1098)</label>
+                                </div>
+                            </div>
+                            <div className="flex items-start">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        type="checkbox"
+                                        name="hasStudentLoans"
+                                        checked={profile.hasStudentLoans}
+                                        onChange={handleChange}
+                                        className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                    />
+                                </div>
+                                <div className="ml-3 text-sm">
+                                    <label className="font-medium text-gray-700">Student Loan Interest (1098-E)</label>
+                                </div>
+                            </div>
+                            <div className="flex items-start">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        type="checkbox"
+                                        name="hasRetirementAccounts"
+                                        checked={profile.hasRetirementAccounts}
+                                        onChange={handleChange}
+                                        className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                    />
+                                </div>
+                                <div className="ml-3 text-sm">
+                                    <label className="font-medium text-gray-700">Retirement Accounts (5498, 1099-R)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-4">
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+                                saving ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'
+                            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
                         >
-                            <ArrowLeft className="w-4 h-4 mr-2"/>
-                            Back to Dashboard
-                        </Link>
+                            {saving ? (
+                                <>
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save Profile'
+                            )}
+                        </button>
                     </div>
-                </div>
-            </nav>
-
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="bg-white shadow rounded-lg">
-                    <div className="border-b border-gray-200">
-                        <nav className="flex -mb-px">
-                            <button
-                                onClick={() => setActiveTab('profile')}
-                                className={`px-6 py-4 text-sm font-medium flex items-center space-x-2 border-b-2 ${
-                                    activeTab === 'profile'
-                                        ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                            >
-                                <User className="w-4 h-4"/>
-                                <span>Profile</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('notifications')}
-                                className={`px-6 py-4 text-sm font-medium flex items-center space-x-2 border-b-2 ${
-                                    activeTab === 'notifications'
-                                        ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                            >
-                                <Bell className="w-4 h-4"/>
-                                <span>Notifications</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('billing')}
-                                className={`px-6 py-4 text-sm font-medium flex items-center space-x-2 border-b-2 ${
-                                    activeTab === 'billing'
-                                        ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                            >
-                                <CreditCard className="w-4 h-4"/>
-                                <span>Billing</span>
-                            </button>
-                        </nav>
-                    </div>
-
-                    <div className="p-8">
-                        {activeTab === 'profile' && (
-                            <div className="space-y-6">
-                                <div className="flex justify-between items-center">
-                                    <h2 className="text-2xl font-bold text-gray-900">Profile Settings</h2>
-                                    <button
-                                        onClick={() => setIsEditing(!isEditing)}
-                                        className="text-sm text-blue-600 hover:text-blue-700"
-                                    >
-                                        {isEditing ? 'Cancel' : 'Edit'}
-                                    </button>
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={profile.displayName}
-                                            onChange={(e) => setProfile({...profile, displayName: e.target.value})}
-                                            disabled={!isEditing}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Email
-                                        </label>
-                                        <input
-                                            type="email"
-                                            value={profile.email}
-                                            disabled
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Phone
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            value={profile.phone}
-                                            onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                                            disabled={!isEditing}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
-                                        />
-                                    </div>
-
-                                    {isEditing && (
-                                        <div className="flex justify-end">
-                                            <button
-                                                onClick={handleSave}
-                                                disabled={isSaving}
-                                                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                                            >
-                                                {isSaving ? (
-                                                    <>
-                                                        <div
-                                                            className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"/>
-                                                        Saving...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Save className="w-4 h-4 mr-2"/>
-                                                        Save Changes
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'notifications' && (
-                            <div className="space-y-6">
-                                <h2 className="text-2xl font-bold text-gray-900">Notification Preferences</h2>
-                                <div className="space-y-4">
-                                    {Object.entries(profile.notifications).map(([key, value]) => (
-                                        <div key={key} className="flex items-center justify-between">
-                                            <div>
-                                                <h3 className="text-sm font-medium text-gray-900">
-                                                    {key.charAt(0).toUpperCase() + key.slice(1)} Notifications
-                                                </h3>
-                                                <p className="text-sm text-gray-500">
-                                                    Receive notifications
-                                                    about {key === 'updates' ? 'product updates' : key}
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() => handleNotificationChange(key as keyof UserProfile['notifications'])}
-                                                className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                                                    value ? 'bg-blue-600' : 'bg-gray-200'
-                                                }`}
-                                            >
-                        <span
-                            className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
-                                value ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                        />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'billing' && (
-                            <div className="space-y-6">
-                                <h2 className="text-2xl font-bold text-gray-900">Billing Information</h2>
-                                <div className="bg-gray-50 rounded-lg p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="text-lg font-medium text-gray-900">Current Plan</h3>
-                                            <p className="text-sm text-gray-500 capitalize">{profile.subscription}</p>
-                                        </div>
-                                        <Link
-                                            to="/"
-                                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-                                        >
-                                            Upgrade Plan
-                                        </Link>
-                                    </div>
-                                </div>
-                                <div className="border-t border-gray-200 pt-6">
-                                    <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Method</h3>
-                                    <button
-                                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                                        <CreditCard className="w-4 h-4 mr-2"/>
-                                        Add Payment Method
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </main>
+                </form>
+            </div>
         </div>
     );
 }

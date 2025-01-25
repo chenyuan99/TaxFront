@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, LayoutDashboard, Activity, Bell } from 'lucide-react';
 import { auth } from '../firebase';
+import { User, LogOut, LayoutDashboard, Briefcase, Bug, Menu, X, Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +14,7 @@ export function Navbar() {
 
     const navigation = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-        { name: 'Jobs', href: '/jobs', icon: Activity },
+        { name: 'Jobs', href: '/jobs', icon: Briefcase },
     ];
 
     useEffect(() => {
@@ -45,20 +47,37 @@ export function Navbar() {
                             <span className="text-xl font-bold text-indigo-600">TaxFront</span>
                         </div>
                         <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            {navigation.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    to={item.href}
-                                    className={`${
-                                        isActive(item.href)
-                                            ? 'border-indigo-500 text-gray-900'
-                                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                                >
-                                    <item.icon className="h-5 w-5 mr-2" />
-                                    {item.name}
-                                </Link>
-                            ))}
+                            <Link
+                                to="/dashboard"
+                                className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                                    location.pathname === '/dashboard'
+                                        ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                        : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                            >
+                                <LayoutDashboard className="w-4 h-4 mr-2" />
+                                Dashboard
+                            </Link>
+                            <Link
+                                to="/jobs"
+                                className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                                    location.pathname === '/jobs'
+                                        ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                        : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                            >
+                                <Briefcase className="w-4 h-4 mr-2" />
+                                Jobs
+                            </Link>
+                            <a
+                                href="https://github.com/chenyuan99/TaxFront/issues"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                            >
+                                <Bug className="w-4 h-4 mr-2" />
+                                Tickets
+                            </a>
                         </div>
                     </div>
 
@@ -146,23 +165,34 @@ export function Navbar() {
             {isOpen && (
                 <div className="sm:hidden">
                     <div className="pt-2 pb-3 space-y-1">
-                        {navigation.map((item) => (
-                            <Link
-                                key={item.href}
-                                to={item.href}
-                                className={`${
-                                    isActive(item.href)
-                                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                                        : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
-                                onClick={() => setIsOpen(false)}
-                            >
-                                <div className="flex items-center">
-                                    <item.icon className="h-5 w-5 mr-2" />
-                                    {item.name}
-                                </div>
-                            </Link>
-                        ))}
+                        <Link
+                            to="/dashboard"
+                            className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                                location.pathname === '/dashboard'
+                                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                                    : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+                            }`}
+                            onClick={() => setIsOpen(false)}
+                        >
+                            <div className="flex items-center">
+                                <LayoutDashboard className="h-5 w-5 mr-2" />
+                                Dashboard
+                            </div>
+                        </Link>
+                        <Link
+                            to="/jobs"
+                            className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                                location.pathname === '/jobs'
+                                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                                    : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+                            }`}
+                            onClick={() => setIsOpen(false)}
+                        >
+                            <div className="flex items-center">
+                                <Briefcase className="h-5 w-5 mr-2" />
+                                Jobs
+                            </div>
+                        </Link>
                     </div>
                     <div className="pt-4 pb-3 border-t border-gray-200">
                         <div className="flex items-center px-4">

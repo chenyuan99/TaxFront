@@ -106,6 +106,96 @@ The application uses GitHub Actions for CI/CD:
 - Backend functions are deployed to Firebase
 - See `.github/workflows` for configuration
 
+## Docker Deployment
+
+TaxFront can be easily deployed using Docker. Follow these steps to get started:
+
+### Prerequisites
+
+- Docker
+- Docker Compose
+- Firebase account with necessary configurations
+
+### Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/chenyuan99/TaxFront.git
+cd TaxFront
+```
+
+2. Create environment file:
+```bash
+cp .env.example .env
+```
+
+3. Update the `.env` file with your Firebase configuration:
+- Add your Firebase API credentials
+- Base64 encode your Firebase service account JSON and add it to FIREBASE_CREDENTIALS
+
+### Running with Docker Compose
+
+1. Build and start the containers:
+```bash
+docker-compose up --build
+```
+
+2. Access the application:
+- Frontend: http://localhost:80
+- Backend API: http://localhost:5000
+
+### Container Structure
+
+The application is containerized into two main services:
+
+1. Frontend Container:
+- Node.js for building
+- Nginx for serving
+- Configured for React Router
+- Proxies API requests to backend
+
+2. Backend Container:
+- Python Flask application
+- Gunicorn for production serving
+- Includes all parser dependencies
+- Connected to Firebase services
+
+### Environment Variables
+
+Required environment variables in `.env`:
+
+```
+FIREBASE_API_KEY=
+FIREBASE_AUTH_DOMAIN=
+FIREBASE_PROJECT_ID=
+FIREBASE_STORAGE_BUCKET=
+FIREBASE_MESSAGING_SENDER_ID=
+FIREBASE_APP_ID=
+FIREBASE_CREDENTIALS=
+```
+
+### Development vs Production
+
+- Development: Use `docker-compose up` with hot-reloading
+- Production: Build optimized images with `docker-compose -f docker-compose.prod.yml up`
+
+### Troubleshooting
+
+Common issues:
+
+1. Port conflicts:
+   - Change port mappings in docker-compose.yml if 80 or 5000 are in use
+
+2. Firebase credentials:
+   - Ensure FIREBASE_CREDENTIALS is properly base64 encoded
+   - Verify all Firebase configuration variables
+
+3. Container access:
+   - Frontend container: `docker exec -it taxfront-frontend sh`
+   - Backend container: `docker exec -it taxfront-backend sh`
+
+For more detailed information, check the documentation in the `docs` directory.
+
 ## Testing
 - Frontend: `npm test`
 - Backend: `python -m pytest`
