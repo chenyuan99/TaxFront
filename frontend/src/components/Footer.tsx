@@ -89,9 +89,12 @@ export function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/security" className="text-gray-600 hover:text-[#00AAFF]">
+                                <a href="https://github.com/chenyuan99/TaxFront/blob/main/SECURITY.md" 
+                                   className="text-gray-600 hover:text-[#00AAFF]"
+                                   target="_blank"
+                                   rel="noopener noreferrer">
                                     Security
-                                </Link>
+                                </a>
                             </li>
                             <li>
                                 <Link to="/compliance" className="text-gray-600 hover:text-[#00AAFF]">
@@ -102,8 +105,8 @@ export function Footer() {
                     </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-gray-200">
-                    <p className="text-sm text-[#00395D] text-center">
+                <div className="mt-8 border-t border-gray-200 pt-8">
+                    <p className="text-gray-400 text-sm text-center">
                         &copy; {currentYear} TaxFront. All rights reserved.
                     </p>
                 </div>
