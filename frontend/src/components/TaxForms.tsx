@@ -157,103 +157,115 @@ export function TaxForms() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <nav className="bg-white shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                            <Shield className="h-8 w-8 text-blue-600" />
-                            <span className="ml-2 text-xl font-bold text-gray-900">TaxFront</span>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h1 className="text-3xl font-bold text-[#00395D] mb-2">Tax Forms Guide</h1>
+                            <p className="text-gray-600">
+                                Find and understand the tax forms you need for your situation.
+                            </p>
                         </div>
                         <Link
-                            to="/"
-                            className="inline-flex items-center px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+                            to="/dashboard"
+                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-[#00395D] hover:text-[#00AAFF] transition-colors"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to Home
+                            Back to Dashboard
                         </Link>
                     </div>
-                </div>
-            </nav>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Tax Forms Guide</h1>
-                    <p className="text-gray-600">
-                        Comprehensive information about common IRS tax forms and their uses.
-                    </p>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search forms..."
-                                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Search forms by name or description..."
+                                className="pl-10 pr-4 py-3 w-full border border-gray-300 rounded-lg focus:ring-[#00AAFF] focus:border-[#00AAFF] bg-white shadow-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                         <div>
                             <select
-                                className="w-full border border-gray-300 rounded-md py-2 pl-4 pr-8 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full border border-gray-300 rounded-lg py-3 pl-4 pr-8 focus:ring-[#00AAFF] focus:border-[#00AAFF] bg-white shadow-sm"
                                 value={selectedCategory}
                                 onChange={(e) => setSelectedCategory(e.target.value)}
                             >
                                 <option value="all">All Categories</option>
                                 <option value="individual">Individual Tax Forms</option>
                                 <option value="business">Business Tax Forms</option>
-                                <option value="employment">Employment Tax Forms</option>
-                                <option value="specialized">Specialized Tax Forms</option>
+                                <option value="employment">Employment Forms</option>
+                                <option value="specialized">Specialized Forms</option>
                             </select>
                         </div>
                     </div>
-                </div>
 
-                <div className="grid grid-cols-1 gap-6">
-                    {filteredForms.map((form) => (
-                        <div key={form.id} className="bg-white rounded-lg shadow-sm p-6">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="flex items-center">
-                                        <FileText className="h-6 w-6 text-blue-600 mr-2" />
-                                        <h2 className="text-xl font-semibold text-gray-900">{form.name}</h2>
+                    <div className="grid grid-cols-1 gap-6">
+                        {filteredForms.map((form) => (
+                            <div
+                                key={form.id}
+                                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                            >
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <div className="flex items-center mb-2">
+                                            <FileText className="h-5 w-5 text-[#00AAFF] mr-2" />
+                                            <h3 className="text-lg font-semibold text-[#00395D]">
+                                                {form.name}
+                                            </h3>
+                                        </div>
+                                        <p className="text-gray-600 mb-4">{form.description}</p>
                                     </div>
-                                    <p className="mt-2 text-gray-600">{form.description}</p>
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#E5F4FF] text-[#00395D]">
+                                        Due: {form.deadline}
+                                    </span>
                                 </div>
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                  Due: {form.deadline}
-                </span>
-                            </div>
 
-                            <div className="mt-4">
-                                <h3 className="text-sm font-medium text-gray-700 mb-2">Common Uses:</h3>
-                                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                    {form.commonUses.map((use, index) => (
-                                        <li key={index} className="flex items-center text-sm text-gray-600">
-                                            <Info className="h-4 w-4 text-blue-500 mr-2 flex-shrink-0" />
-                                            {use}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                                <div className="mt-4">
+                                    <h4 className="text-sm font-medium text-[#00395D] mb-2 flex items-center">
+                                        <Info className="h-4 w-4 mr-1" />
+                                        Common Uses
+                                    </h4>
+                                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {form.commonUses.map((use, index) => (
+                                            <li
+                                                key={index}
+                                                className="flex items-center text-sm text-gray-600"
+                                            >
+                                                <span className="w-1.5 h-1.5 rounded-full bg-[#00AAFF] mr-2"></span>
+                                                {use}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
 
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                                <a
-                                    href={`https://www.irs.gov/forms-pubs/about-form-${form.id.toLowerCase()}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700"
-                                >
-                                    View official IRS form
-                                    <ExternalLink className="h-4 w-4 ml-1" />
-                                </a>
+                                <div className="mt-4 pt-4 border-t border-gray-100">
+                                    <a
+                                        href={`https://www.irs.gov/forms-pubs/about-form-${form.id.toLowerCase()}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center text-sm text-[#00AAFF] hover:text-[#00395D] transition-colors"
+                                    >
+                                        <ExternalLink className="h-4 w-4 mr-1" />
+                                        View Official Form
+                                    </a>
+                                </div>
                             </div>
+                        ))}
+                    </div>
+
+                    {filteredForms.length === 0 && (
+                        <div className="text-center py-12">
+                            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No forms found</h3>
+                            <p className="text-gray-600">
+                                Try adjusting your search or filter to find what you're looking for.
+                            </p>
                         </div>
-                    ))}
+                    )}
                 </div>
-            </main>
+            </div>
         </div>
     );
 }
