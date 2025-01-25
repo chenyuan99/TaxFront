@@ -10,7 +10,9 @@ from urllib.parse import urlparse
 
 # Initialize Firebase Admin
 cred = credentials.ApplicationDefault()
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {
+    'storageBucket': os.getenv('FIREBASE_STORAGE_BUCKET', 'taxfront.appspot.com')
+})
 db = firestore.client()
 bucket = storage.bucket()  # Get default bucket
 

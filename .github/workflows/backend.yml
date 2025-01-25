@@ -39,6 +39,7 @@ jobs:
       run: pytest --cov=./ --cov-report=xml
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

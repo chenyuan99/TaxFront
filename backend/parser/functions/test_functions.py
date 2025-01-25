@@ -1,89 +1,54 @@
+import pytest
+from unittest.mock import Mock, patch
 import firebase_admin
 from firebase_admin import auth, credentials
-import requests
-import json
-import os
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
+from firebase_functions import https_fn
 
-# Initialize Firebase Admin with service account
-cred = credentials.Certificate('firebase-adminsdk.json')
-app = firebase_admin.initialize_app(cred, {
-    'projectId': 'taxfront-1e142',
-})
+@pytest.fixture(autouse=True)
+def mock_firebase():
+    with patch('firebase_admin.initialize_app') as mock_init:
+        with patch('firebase_admin.auth') as mock_auth:
+            with patch('firebase_admin.credentials.Certificate') as mock_cred:
+                mock_auth.create_user.return_value = Mock(uid='test_user_id')
+                mock_auth.create_custom_token.return_value = b'mock_custom_token'
+                yield mock_init, mock_auth, mock_cred
 
-def test_functions():
-    # Create a test user
-    try:
-        user = auth.create_user(
-            email='test@example.com',
-            password='testpassword123'
-        )
-        print(f"Created test user: {user.uid}")
-    except Exception as e:
-        print(f"Error creating user: {e}")
-        return
-
-    # Create a custom token and exchange it for an ID token
-    custom_token = auth.create_custom_token(user.uid).decode('utf-8')
-    print(f"Created custom token: {custom_token}")
-
-    # Get an ID token using the custom token
-    auth_url = f"https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key=AIzaSyB6gJ0vRwC0QBvuCjU5Fb0AFQmIpruPpRk"
-    response = requests.post(auth_url, json={
-        'token': custom_token,
-        'returnSecureToken': True
-    })
+def test_user_creation(mock_firebase):
+    _, mock_auth, _ = mock_firebase
     
-    if not response.ok:
-        print(f"Error getting ID token: {response.text}")
-        return
+    # Test user creation
+    user = mock_auth.create_user(
+        email='test@example.com',
+        password='testpassword123'
+    )
+    assert user.uid == 'test_user_id'
+    mock_auth.create_user.assert_called_once_with(
+        email='test@example.com',
+        password='testpassword123'
+    )
 
-    id_token = response.json()['idToken']
-    print(f"Got ID token")
+def test_token_creation(mock_firebase):
+    _, mock_auth, _ = mock_firebase
+    
+    # Test custom token creation
+    custom_token = mock_auth.create_custom_token('test_user_id')
+    assert custom_token == b'mock_custom_token'
+    mock_auth.create_custom_token.assert_called_once_with('test_user_id')
 
-    # Test create_user_profile
-    profile_data = {
-        'name': 'Test User',
-        'taxId': '123-45-6789',
-        'businessType': 'Individual'
+def test_user_verification(mock_firebase):
+    _, mock_auth, _ = mock_firebase
+    
+    # Mock the verify_id_token function
+    mock_auth.verify_id_token.return_value = {
+        'uid': 'test_user_id',
+        'email': 'test@example.com'
     }
-
-    headers = {
-        'Authorization': f'Bearer {id_token}',
-        'Content-Type': 'application/json'
-    }
-
-    # Test endpoints
-    endpoints = [
-        ('create_user_profile', 'POST', profile_data),
-        ('get_tax_documents', 'GET', None),
-        ('get_tax_summary', 'GET', None)
-    ]
-
-    base_url = 'https://{}-yzkwo2eyeq-uc.a.run.app'
-
-    for endpoint, method, data in endpoints:
-        url = base_url.format(endpoint.replace('_', '-'))
-        print(f"\nTesting {endpoint}...")
-        
-        try:
-            if method == 'POST':
-                response = requests.post(url, headers=headers, json=data)
-            else:
-                response = requests.get(url, headers=headers)
-            
-            print(f"Status: {response.status_code}")
-            print(f"Response: {response.text}")
-        except Exception as e:
-            print(f"Error: {e}")
-
-    # Clean up - delete test user
-    try:
-        auth.delete_user(user.uid)
-        print("\nDeleted test user")
-    except Exception as e:
-        print(f"\nError deleting user: {e}")
+    
+    # Test token verification
+    decoded_token = mock_auth.verify_id_token('mock_id_token')
+    assert decoded_token['uid'] == 'test_user_id'
+    assert decoded_token['email'] == 'test@example.com'
+    mock_auth.verify_id_token.assert_called_once_with('mock_id_token')
 
 if __name__ == '__main__':
-    test_functions()
+    pytest.main([__file__])

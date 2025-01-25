@@ -9,8 +9,10 @@ import os
 @pytest.fixture(autouse=True)
 def mock_firebase():
     with patch('firebase_admin.initialize_app') as mock_init:
-        with patch('firebase_admin.firestore.client') as mock_client:
-            yield mock_init, mock_client
+        with patch('firebase_admin.firestore.client') as mock_firestore:
+            with patch('firebase_admin.storage.bucket') as mock_storage:
+                mock_storage.return_value = Mock()
+                yield mock_init, mock_firestore, mock_storage
 
 # Import main after mocking Firebase
 from main import create_user_profile, get_tax_documents, get_tax_summary
