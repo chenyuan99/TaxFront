@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Analytics } from "@vercel/analytics/react";
 import { Auth } from './components/Auth.tsx';
+import { Register } from './components/Register.tsx';
 import { Dashboard } from './components/Dashboard.tsx';
 import { AccountantDashboard } from './components/AccountantDashboard.tsx';
 import { TermsOfService } from './components/TermsOfService.tsx';
@@ -49,6 +50,8 @@ export default function App() {
                 {user && <Navbar />}
                 <main className="pb-8">
                     <Routes>
+                        <Route path="/login" element={<Auth />} />
+                        <Route path="/register" element={<Register />} />
                         <Route path="terms" element={<TermsOfService />} />
                         <Route path="privacy" element={<Privacy />} />
                         <Route path="contact" element={<Contact />} />

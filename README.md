@@ -1,6 +1,5 @@
 # TaxFront
 
-[![Vercel](https://vercelbadge.vercel.app/api/chenyuan99/TaxFront)](https://tax-front.vercel.app)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront?ref=badge_shield)
 [![Security Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront.svg?type=shield&issueType=security)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchenyuan99%2FTaxFront?ref=badge_shield&issueType=security)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/chenyuan99/TaxFront/frontend.yml)](https://github.com/chenyuan99/TaxFront/actions)
@@ -40,7 +39,7 @@ TaxFront is a modern, secure web application designed to streamline tax document
 - Vite for build tooling
 - TailwindCSS for styling
 - Firebase SDK for authentication
-- Vercel Analytics for usage tracking
+- Firebase Analytics for usage tracking
 
 ### Backend
 - Firebase Cloud Functions (Python)
@@ -103,7 +102,7 @@ TaxFront is a modern, secure web application designed to streamline tax document
 
 ### Deployment
 The application uses GitHub Actions for CI/CD:
-- Frontend is automatically deployed to Vercel
+- Frontend is automatically deployed
 - Backend functions are deployed to Firebase
 - See `.github/workflows` for configuration
 
