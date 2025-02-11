@@ -15,6 +15,46 @@ type Job = {
     result?: any;
 };
 
+const sampleJobs = [
+  {
+    id: 1,
+    title: 'Document Embedding',
+    status: 'Processing',
+    documentCount: 150,
+    type: 'embedding'
+  },
+  {
+    id: 2,
+    title: 'RAG Query Processing',
+    status: 'Completed',
+    query: 'What is the capital of France?',
+    context: 'France is a country in Europe.',
+    response: 'The capital of France is Paris.',
+    type: 'rag'
+  },
+  {
+    id: 3,
+    title: 'Document Embedding',
+    status: 'Pending',
+    documentCount: 300,
+    type: 'embedding'
+  },
+  {
+    id: 4,
+    title: 'Tax Preparer Reviewing',
+    status: 'Reviewing',
+    taxPreparer: 'John Doe',
+    type: 'tax'
+  },
+  {
+    id: 5,
+    title: 'Pending User Signing',
+    status: 'Pending',
+    signatureRequired: true,
+    type: 'signature'
+  }
+];
+
 export function Jobs() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
@@ -133,7 +173,76 @@ export function Jobs() {
                             </div>
                         ))}
 
-                        {jobs.length === 0 && (
+                        {sampleJobs.map((job) => (
+                            <div 
+                                key={job.id} 
+                                className="p-6 hover:bg-gray-50 transition-colors"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        {job.status === 'Processing' && (
+                                            <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />
+                                        )}
+                                        {job.status === 'Completed' && (
+                                            <CheckCircle className="h-5 w-5 text-green-500" />
+                                        )}
+                                        {job.status === 'Pending' && (
+                                            <Clock className="h-5 w-5 text-gray-500" />
+                                        )}
+                                        {job.status === 'Reviewing' && (
+                                            <span className="text-sm text-gray-500">Reviewing</span>
+                                        )}
+                                        <div>
+                                            <h3 className="text-sm font-medium text-gray-900">
+                                                {job.title}
+                                            </h3>
+                                            <div className="mt-1 flex items-center space-x-2">
+                                                <span className="text-sm text-gray-500">
+                                                    Status: {job.status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center space-x-3">
+                                        {job.type === 'embedding' && (
+                                            <div>
+                                                <span className="text-sm text-gray-500">
+                                                    Document Count: {job.documentCount}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {job.type === 'rag' && (
+                                            <div>
+                                                <span className="text-sm text-gray-500">
+                                                    Query: {job.query}
+                                                </span>
+                                                <span className="text-gray-300">•</span>
+                                                <span className="text-sm text-gray-500">
+                                                    Response: {job.response}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {job.type === 'tax' && (
+                                            <div>
+                                                <span className="text-sm text-gray-500">
+                                                    Tax Preparer: {job.taxPreparer}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {job.type === 'signature' && (
+                                            <div>
+                                                <span className="text-sm text-gray-500">
+                                                    Signature Required: {job.signatureRequired ? 'Yes' : 'No'}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {jobs.length === 0 && sampleJobs.length === 0 && (
                             <div className="p-6 text-center text-gray-500">
                                 No processing jobs found
                             </div>
