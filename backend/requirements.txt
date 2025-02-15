@@ -10,7 +10,10 @@ ollama  # If necessary for Ollama support
 firebase_admin
 firebase_functions
 google-cloud-firestore
-PyPDF2
+# PDF Processing
+PyPDF2>=3.0.0
+reportlab>=4.0.0
+requests>=2.31.0
 pytesseract
 Pillow
 pandas

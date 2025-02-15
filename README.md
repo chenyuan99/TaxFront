@@ -31,6 +31,14 @@ TaxFront is a modern, secure web application designed to streamline tax document
   - Input validation and sanitization
   - See [SECURITY.md](SECURITY.md) for details
 
+- **Tax Form Automation**
+  - Automatic IRS form downloading and caching
+  - Support for multiple form types (1040, W-2, etc.)
+  - Field validation with custom rules
+  - PDF form filling with proper positioning
+  - Multi-page form support
+  - Browser-based automation for complex forms
+
 ## Tech Stack
 ### Frontend
 - React 18 with TypeScript
@@ -53,6 +61,8 @@ TaxFront is a modern, secure web application designed to streamline tax document
 - Python 3.12+
 - Firebase CLI
 - Google Cloud SDK
+- Docker and Docker Compose
+- Chrome/Chromium (for browser automation)
 
 ### Installation
 1. Clone the repository:

@@ -1,0 +1,241 @@
+openapi: 3.0.3
+info:
+  title: TaxFront API
+  description: API documentation for TaxFront application
+  version: 1.2.0
+servers:
+  - url: https://us-central1-taxfront-1e142.cloudfunctions.net
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserProfile:
+      type: object
+      required:
+        - name
+        - taxId
+        - businessType
+      properties:
+        name:
+          type: string
+          description: User's full name
+        taxId:
+          type: string
+          description: Tax identification number
+        businessType:
+          type: string
+          description: Type of business
+
+    TaxDocument:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - size
+        - uploadDate
+        - url
+        - path
+        - status
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the document
+        name:
+          type: string
+          description: Document name
+        type:
+          type: string
+          description: Document type
+        size:
+          type: number
+          description: File size in bytes
+        uploadDate:
+          type: string
+          format: date-time
+          description: Date and time when document was uploaded
+        url:
+          type: string
+          description: URL to access the document
+        path:
+          type: string
+          description: Storage path of the document
+        status:
+          type: string
+          enum: [pending, processed, error]
+          description: Current processing status
+        metadata:
+          type: object
+          properties:
+            name:
+              type: string
+            tax_id:
+              type: string
+            income:
+              type: number
+            tax_due:
+              type: number
+            tax_year:
+              type: string
+            confidence_scores:
+              type: object
+              additionalProperties:
+                type: number
+
+    TaxForm:
+      type: object
+      required:
+        - formType
+        - year
+        - formData
+      properties:
+        formType:
+          type: string
+          enum: [FORM_1040, W-2, 1099-INT, 1099-DIV, 1099-B, 1099-MISC]
+          description: Type of tax form
+        year:
+          type: integer
+          description: Tax year
+        formData:
+          type: object
+          description: Form field values
+          additionalProperties: true
+
+    FormFieldDefinition:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - page
+        - coordinates
+      properties:
+        id:
+          type: string
+          description: Field identifier
+        name:
+          type: string
+          description: Display name of the field
+        type:
+          type: string
+          enum: [text, number, date, checkbox]
+          description: Field type
+        page:
+          type: integer
+          description: Page number in the form
+        coordinates:
+          type: object
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+        validation:
+          type: object
+          properties:
+            pattern:
+              type: string
+            required:
+              type: boolean
+            min:
+              type: number
+            max:
+              type: number
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/tax-forms/supported:
+    get:
+      summary: Get list of supported tax forms
+      operationId: getSupportedForms
+      responses:
+        '200':
+          description: List of supported forms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    year:
+                      type: integer
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+  /api/tax-forms/fill:
+    post:
+      summary: Fill a tax form with provided data
+      operationId: fillTaxForm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxForm'
+      responses:
+        '200':
+          description: Filled PDF form
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+  /api/tax-forms/{formType}/fields:
+    get:
+      summary: Get field definitions for a specific form type
+      operationId: getFormFields
+      parameters:
+        - name: formType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Form field definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FormFieldDefinition'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Form type not found
+        '500':
+          description: Internal server error
