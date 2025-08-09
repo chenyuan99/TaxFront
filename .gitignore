@@ -64,6 +64,7 @@ wheels/
 *.egg
 venv/
 ENV/
+backend/venv/
 
 # Firebase
 .firebase/

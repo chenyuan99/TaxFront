@@ -355,6 +355,25 @@ export function Profile() {
                         </div>
                     </div>
 
+                    <div className="mt-8 flex space-x-4">
+                        <button
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            onClick={() => {
+                                // TODO: Implement export as JSON
+                            }}
+                        >
+                            Export as JSON
+                        </button>
+                        <button
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            onClick={() => {
+                                // TODO: Implement export filled tax form
+                            }}
+                        >
+                            Export Filled Tax Form
+                        </button>
+                    </div>
+
                     <div className="flex justify-end space-x-4">
                         <button
                             type="submit"
