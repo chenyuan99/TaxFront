@@ -10,7 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@intercom/messenger-js-sdk": "^0.0.14",
+    "@copilotkit/backend": "^0.37.0",
+    "@copilotkit/react-core": "^1.8.13",
+    "@copilotkit/react-textarea": "^1.8.13",
+    "@copilotkit/react-ui": "^1.8.13",
     "@mediapipe/tasks-genai": "^0.10.18",
     "@vercel/analytics": "^1.4.1",
     "chrome-types": "^0.1.316",

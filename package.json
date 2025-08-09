@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@copilotkit/react-core": "^1.9.1",
+    "@copilotkit/react-textarea": "^1.9.1",
+    "@copilotkit/react-ui": "^0.2.0",
+    "@copilotkit/runtime": "^1.9.1",
+    "@vercel/analytics": "^1.4.1"
+  }
+}
