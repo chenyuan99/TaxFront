@@ -12,6 +12,7 @@ import { Profile } from './components/Profile.tsx';
 import { About } from './components/About.tsx';
 import { TaxCalculator } from './components/TaxCalculator.tsx';
 import { TaxForms } from './components/TaxForms.tsx';
+import { TaxQuestionnaire } from './components/TaxQuestionnaire';
 import { CookieBanner } from './components/CookieBanner.tsx';
 import { auth } from './firebase.ts';
 import { User } from 'firebase/auth';
@@ -58,6 +59,23 @@ export default function App() {
                         <Route path="about" element={<About />} />
                         <Route path="calculator" element={<TaxCalculator />} />
                         <Route path="forms" element={<TaxForms />} />
+                        <Route path="questionnaire" element={
+                            user ? (
+                                <TaxQuestionnaire
+                                    userId={user.uid}
+                                    onComplete={(data) => {
+                                        console.log('Questionnaire completed:', data);
+                                        // Handle completion - could redirect to dashboard or show confirmation
+                                    }}
+                                    onSave={(data) => {
+                                        console.log('Questionnaire auto-saved:', data);
+                                    }}
+                                    language="both"
+                                />
+                            ) : (
+                                <Auth />
+                            )
+                        } />
                         <Route path="storage-test" element={<StorageTest />} />
                         <Route path="jobs" element={user ? <Jobs /> : <Auth />} />
                         <Route path="profile" element={user ? <Profile /> : <Auth />} />
