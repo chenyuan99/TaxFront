@@ -6,7 +6,15 @@ on:
     - cron: '0 9 * * 1'
   workflow_dispatch: # Allow manual trigger
   push:
-    branches: [ main ]
+    branches: [ main, 'feature/**' ]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/upgrade-docs.yml'
+  pull_request:
+    branches: [ main, 'feature/**' ]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/upgrade-docs.yml'
 
 permissions:
   contents: write
