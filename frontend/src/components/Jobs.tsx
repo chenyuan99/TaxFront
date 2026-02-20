@@ -1,19 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../firebase';
-import { collection, query, orderBy, where, onSnapshot } from 'firebase/firestore';
+import { auth } from '../firebase';
 import { Play, RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { api } from '../services/api';
-
-type Job = {
-    id: string;
-    documentId: string;
-    documentName: string;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
-    createdAt: string;
-    updatedAt: string;
-    error?: string;
-    result?: any;
-};
+import { jobService, type Job } from '../services/jobService';
 
 const sampleJobs = [
   {
@@ -64,20 +52,17 @@ export function Jobs() {
         const user = auth.currentUser;
         if (!user) return;
 
-        const jobsQuery = query(
-            collection(db, 'jobs'),
-            where('userId', '==', user.uid),
-            orderBy('createdAt', 'desc')
+        const unsubscribe = jobService.subscribeToUserJobs(
+            user.uid,
+            (jobsList) => {
+                setJobs(jobsList);
+                setLoading(false);
+            },
+            (error) => {
+                console.error('Error fetching jobs:', error);
+                setLoading(false);
+            }
         );
-
-        const unsubscribe = onSnapshot(jobsQuery, (snapshot) => {
-            const jobsList = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Job));
-            setJobs(jobsList);
-            setLoading(false);
-        });
 
         return () => unsubscribe();
     }, []);
@@ -86,7 +71,7 @@ export function Jobs() {
         if (job.status === 'processing') return;
 
         try {
-            await api.processDocument(job.documentId);
+            await jobService.processJob(job.id);
         } catch (error) {
             console.error('Error processing job:', error);
         }

@@ -1,0 +1,88 @@
+name: Upgrade Documentation Dependencies
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check for Mintlify updates
+        id: check_updates
+        run: |
+          # Get current Mintlify CLI version if package.json exists
+          if [ -f package.json ]; then
+            CURRENT_VERSION=$(npm list -g mintlify --depth=0 2>/dev/null | grep mintlify@ | sed 's/.*@//' || echo "not installed")
+          else
+            CURRENT_VERSION="not installed"
+          fi
+          
+          # Get latest Mintlify version
+          LATEST_VERSION=$(npm view mintlify version)
+          
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "updates_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "updates_available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Initialize package.json if not exists
+        run: |
+          if [ ! -f package.json ]; then
+            npm init -y
+            npm pkg set scripts.dev="mintlify dev"
+            npm pkg set scripts.install="mintlify install"
+          fi
+
+      - name: Update Mintlify CLI
+        if: steps.check_updates.outputs.updates_available == 'true'
+        run: |
+          npm install -D mintlify@latest
+
+      - name: Create Pull Request
+        if: steps.check_updates.outputs.updates_available == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: upgrade Mintlify CLI to ${{ steps.check_updates.outputs.latest_version }}'
+          title: 'chore: upgrade documentation dependencies'
+          body: |
+            ## Documentation Dependencies Update
+            
+            This PR automatically upgrades the documentation dependencies.
+            
+            ### Changes
+            - Mintlify CLI: `${{ steps.check_updates.outputs.current_version }}` → `${{ steps.check_updates.outputs.latest_version }}`
+            
+            ### Testing
+            Please verify the documentation builds correctly:
+            ```bash
+            npm run dev
+            ```
+            
+            ---
+            *This PR was automatically created by the upgrade-docs workflow*
+          branch: chore/upgrade-docs-dependencies
+          delete-branch: true
+          labels: |
+            dependencies
+            documentation
+            automated
