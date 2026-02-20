@@ -1,10 +1,20 @@
-name: Upgrade Documentation Dependencies
+﻿name: Upgrade Documentation Dependencies
 
 on:
   schedule:
     # Run every Monday at 9:00 AM UTC
     - cron: '0 9 * * 1'
   workflow_dispatch: # Allow manual trigger
+  push:
+    branches: [ main, 'feature/**' ]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/upgrade-docs.yml'
+  pull_request:
+    branches: [ main, 'feature/**' ]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/upgrade-docs.yml'
 
 permissions:
   contents: write
@@ -22,29 +32,44 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Locate docs workspace
+        id: docs_workspace
+        run: |
+          if [ -f docs/mint.json ]; then
+            echo "workdir=docs" >> "$GITHUB_OUTPUT"
+          else
+            echo "workdir=." >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Check for Mintlify updates
         id: check_updates
+        working-directory: ${{ steps.docs_workspace.outputs.workdir }}
         run: |
-          # Get current Mintlify CLI version if package.json exists
+          # Read currently pinned local Mintlify version, if any.
           if [ -f package.json ]; then
-            CURRENT_VERSION=$(npm list -g mintlify --depth=0 2>/dev/null | grep mintlify@ | sed 's/.*@//' || echo "not installed")
+            CURRENT_VERSION=$(node -e "const fs=require('fs');const p='package.json';const pkg=JSON.parse(fs.readFileSync(p,'utf8'));const v=(pkg.devDependencies&&pkg.devDependencies.mintlify)||(pkg.dependencies&&pkg.dependencies.mintlify)||'';process.stdout.write(v);")
+            if [ -z "$CURRENT_VERSION" ]; then
+              CURRENT_VERSION="not installed"
+            fi
           else
             CURRENT_VERSION="not installed"
           fi
-          
-          # Get latest Mintlify version
+
+          # Get latest Mintlify version from npm registry.
           LATEST_VERSION=$(npm view mintlify version)
-          
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-          
+
+          echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "latest_version=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
+
           if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
-            echo "updates_available=true" >> $GITHUB_OUTPUT
+            echo "updates_available=true" >> "$GITHUB_OUTPUT"
           else
-            echo "updates_available=false" >> $GITHUB_OUTPUT
+            echo "updates_available=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Initialize package.json if not exists
+        if: steps.check_updates.outputs.updates_available == 'true'
+        working-directory: ${{ steps.docs_workspace.outputs.workdir }}
         run: |
           if [ ! -f package.json ]; then
             npm init -y
@@ -54,6 +79,7 @@ jobs:
 
       - name: Update Mintlify CLI
         if: steps.check_updates.outputs.updates_available == 'true'
+        working-directory: ${{ steps.docs_workspace.outputs.workdir }}
         run: |
           npm install -D mintlify@latest
 
@@ -66,18 +92,18 @@ jobs:
           title: 'chore: upgrade documentation dependencies'
           body: |
             ## Documentation Dependencies Update
-            
+
             This PR automatically upgrades the documentation dependencies.
-            
+
             ### Changes
-            - Mintlify CLI: `${{ steps.check_updates.outputs.current_version }}` → `${{ steps.check_updates.outputs.latest_version }}`
-            
+            - Mintlify CLI: `${{ steps.check_updates.outputs.current_version }}` -> `${{ steps.check_updates.outputs.latest_version }}`
+
             ### Testing
             Please verify the documentation builds correctly:
             ```bash
             npm run dev
             ```
-            
+
             ---
             *This PR was automatically created by the upgrade-docs workflow*
           branch: chore/upgrade-docs-dependencies
