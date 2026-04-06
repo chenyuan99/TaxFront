@@ -1,11 +1,24 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: TaxFront API
-  description: API documentation for TaxFront application
-  version: 1.2.0
+  description: |
+    TaxFront tax document management API.
+
+    **Production:** Firebase Cloud Functions — `https://us-central1-taxfront-1e142.cloudfunctions.net`
+    **Development:** Flask dev server — `http://localhost:8080`
+
+    All endpoints require a Firebase ID token in the `Authorization: Bearer <token>` header,
+    except `/health` and `/`.
+  version: 2.0.0
+
 servers:
   - url: https://us-central1-taxfront-1e142.cloudfunctions.net
-    description: Production server
+    description: Production (Firebase Cloud Functions)
+  - url: http://localhost:8080
+    description: Development (Flask dev server)
+
+security:
+  - bearerAuth: []
 
 components:
   securitySchemes:
@@ -13,229 +26,589 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Firebase ID token from Firebase Authentication
 
   schemas:
     UserProfile:
       type: object
-      required:
-        - name
-        - taxId
-        - businessType
+      required: [name, taxId, businessType]
       properties:
         name:
           type: string
           description: User's full name
+          example: Jane Doe
         taxId:
           type: string
-          description: Tax identification number
+          description: Tax identification number (SSN or EIN)
+          example: "123-45-6789"
         businessType:
           type: string
-          description: Type of business
+          description: Type of business entity
+          example: sole_proprietor
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    DocumentMetadata:
+      type: object
+      properties:
+        name:
+          type: string
+        tax_id:
+          type: string
+        income:
+          type: number
+          format: float
+        tax_due:
+          type: number
+          format: float
+        tax_year:
+          type: string
+          example: "2024"
+        filing_status:
+          type: string
+          example: single
+        confidence_scores:
+          type: object
+          additionalProperties:
+            type: number
+        parser_version:
+          type: string
+        processing_timestamp:
+          type: string
+          format: date-time
+        extraction_success:
+          type: boolean
 
     TaxDocument:
       type: object
-      required:
-        - id
-        - name
-        - type
-        - size
-        - uploadDate
-        - url
-        - path
-        - status
+      required: [id, name, type, size, uploadDate, url, path, status]
       properties:
         id:
           type: string
-          description: Unique identifier for the document
+          description: Firestore document ID
         name:
           type: string
-          description: Document name
+          description: File name
+        originalName:
+          type: string
+          description: Original uploaded file name
         type:
           type: string
-          description: Document type
+          description: MIME type
+          example: application/pdf
         size:
-          type: number
+          type: integer
           description: File size in bytes
         uploadDate:
           type: string
           format: date-time
-          description: Date and time when document was uploaded
         url:
           type: string
-          description: URL to access the document
+          format: uri
+          description: Cloud Storage download URL
         path:
           type: string
-          description: Storage path of the document
+          description: Cloud Storage path
         status:
           type: string
           enum: [pending, processed, error]
-          description: Current processing status
         metadata:
-          type: object
-          properties:
-            name:
-              type: string
-            tax_id:
-              type: string
-            income:
-              type: number
-            tax_due:
-              type: number
-            tax_year:
-              type: string
-            confidence_scores:
-              type: object
-              additionalProperties:
-                type: number
+          $ref: "#/components/schemas/DocumentMetadata"
+        error:
+          type: string
+          description: Error message if status is error
 
-    TaxForm:
+    TaxSummary:
       type: object
-      required:
-        - formType
-        - year
-        - formData
+      required: [totalDocuments, documentTypes, processingStatus, recentDocuments]
       properties:
-        formType:
-          type: string
-          enum: [FORM_1040, W-2, 1099-INT, 1099-DIV, 1099-B, 1099-MISC]
-          description: Type of tax form
-        year:
+        totalDocuments:
           type: integer
-          description: Tax year
-        formData:
+        lastUpdated:
+          type: string
+          format: date-time
+          nullable: true
+        documentTypes:
           type: object
-          description: Form field values
-          additionalProperties: true
+          additionalProperties:
+            type: integer
+          description: Count of documents per MIME type
+        processingStatus:
+          type: object
+          required: [processed, pending, error]
+          properties:
+            processed:
+              type: integer
+            pending:
+              type: integer
+            error:
+              type: integer
+        recentDocuments:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxDocument"
+          maxItems: 5
 
-    FormFieldDefinition:
+    ProcessingResult:
       type: object
-      required:
-        - id
-        - name
-        - type
-        - page
-        - coordinates
+      required: [success, documentId]
       properties:
-        id:
+        success:
+          type: boolean
+        documentId:
           type: string
-          description: Field identifier
-        name:
+        error:
           type: string
-          description: Display name of the field
-        type:
-          type: string
-          enum: [text, number, date, checkbox]
-          description: Field type
-        page:
-          type: integer
-          description: Page number in the form
-        coordinates:
-          type: object
-          properties:
-            x:
-              type: number
-            y:
-              type: number
-        validation:
-          type: object
-          properties:
-            pattern:
-              type: string
-            required:
-              type: boolean
-            min:
-              type: number
-            max:
-              type: number
+        metadata:
+          $ref: "#/components/schemas/DocumentMetadata"
 
-security:
-  - bearerAuth: []
+    DocumentStatusResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, processed, error]
+        metadata:
+          $ref: "#/components/schemas/DocumentMetadata"
+        error:
+          type: string
+
+    AgentRequest:
+      type: object
+      required: [user_id]
+      properties:
+        user_id:
+          type: string
+          description: Firebase user ID
+        task:
+          type: string
+          description: Custom instruction for the agent (optional — defaults to a full analysis)
+
+    AccountantAgentRequest:
+      allOf:
+        - $ref: "#/components/schemas/AgentRequest"
+        - type: object
+          properties:
+            filing_status:
+              type: string
+              enum: [single, married_filing_jointly, married_filing_separately, head_of_household]
+              default: single
+
+    AgentResponse:
+      type: object
+      required: [status, user_id, output]
+      properties:
+        status:
+          type: string
+          example: ok
+        user_id:
+          type: string
+        output:
+          type: string
+          description: Agent's analysis output (Markdown text)
+
+    HealthResponse:
+      type: object
+      required: [status, firebase, openai]
+      properties:
+        status:
+          type: string
+          example: ok
+        firebase:
+          type: boolean
+        openai:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid Firebase ID token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Document does not belong to the authenticated user
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    BadRequest:
+      description: Invalid request body or missing required fields
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
 
 paths:
-  /api/tax-forms/supported:
-    get:
-      summary: Get list of supported tax forms
-      operationId: getSupportedForms
-      responses:
-        '200':
-          description: List of supported forms
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                    year:
-                      type: integer
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal server error
 
-  /api/tax-forms/fill:
+  # ── Cloud Functions (production) ──────────────────────────────────────────
+
+  /create_user_profile:
     post:
-      summary: Fill a tax form with provided data
-      operationId: fillTaxForm
+      operationId: createUserProfile
+      summary: Create or update user profile
+      description: Stores tax-related profile information for the authenticated user in Firestore.
+      tags: [User]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TaxForm'
+              $ref: "#/components/schemas/UserProfile"
       responses:
-        '200':
-          description: Filled PDF form
+        "200":
+          description: Profile saved successfully
           content:
-            application/pdf:
+            text/plain:
               schema:
                 type: string
-                format: binary
-        '400':
-          description: Bad request
+                example: Profile updated successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /get_tax_documents:
+    get:
+      operationId: getTaxDocuments
+      summary: List tax documents
+      description: Returns all tax documents belonging to the authenticated user.
+      tags: [Documents]
+      responses:
+        "200":
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [documents]
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TaxDocument"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /get_tax_summary:
+    get:
+      operationId: getTaxSummary
+      summary: Get tax summary
+      description: |
+        Returns an aggregated summary of the user's tax situation including
+        document counts by type and processing status. Response is cached for 5 minutes.
+      tags: [Documents]
+      responses:
+        "200":
+          description: Tax summary
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: public, max-age=300
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /process_document:
+    post:
+      operationId: processDocument
+      summary: Manually trigger document processing
+      description: |
+        Re-processes a specific tax document. Useful when automatic processing
+        failed or needs to be retried. Only the document owner can trigger this.
+      tags: [Documents]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [documentId]
+              properties:
+                documentId:
+                  type: string
+                  description: Firestore document ID
+      responses:
+        "200":
+          description: Processing result (success or failure)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessingResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /get_document_status:
+    get:
+      operationId: getDocumentStatus
+      summary: Get document processing status
+      description: |
+        Returns the current status and extracted metadata for a document.
+        Response is cached for 1 minute.
+      tags: [Documents]
+      parameters:
+        - name: documentId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Firestore document ID
+      responses:
+        "200":
+          description: Document status
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: public, max-age=60
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentStatusResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ── Flask dev server only ─────────────────────────────────────────────────
+
+  /:
+    get:
+      operationId: getServiceInfo
+      summary: Service info
+      description: Returns service status and available routes. No authentication required.
+      tags: [Dev]
+      security: []
+      responses:
+        "200":
+          description: Service info
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  error:
+                  status:
                     type: string
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal server error
+                  service:
+                    type: string
+                  firebase:
+                    type: string
+                  routes:
+                    type: array
+                    items:
+                      type: string
 
-  /api/tax-forms/{formType}/fields:
+  /health:
     get:
-      summary: Get field definitions for a specific form type
-      operationId: getFormFields
+      operationId: getHealth
+      summary: Health check
+      description: Returns service health including Firebase and OpenAI connectivity. No authentication required.
+      tags: [Dev]
+      security: []
+      responses:
+        "200":
+          description: Health status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /firebase-status:
+    get:
+      operationId: getFirebaseStatus
+      summary: Firebase connectivity check
+      description: Verifies Firestore is reachable and lists top-level collections.
+      tags: [Dev]
+      responses:
+        "200":
+          description: Firebase is connected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  collections:
+                    type: array
+                    items:
+                      type: string
+        "503":
+          description: Firebase not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /debug/users:
+    get:
+      operationId: debugListUsers
+      summary: List sample user IDs (dev only)
+      description: Lists up to 10 unique user IDs from the taxDocuments collection. For development debugging only.
+      tags: [Dev]
+      responses:
+        "200":
+          description: Sample users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user_id:
+                          type: string
+                        sample_doc_type:
+                          type: string
+                        status:
+                          type: string
+        "503":
+          description: Firebase not configured
+
+  /sample/{filename}:
+    get:
+      operationId: getSampleFile
+      summary: Serve sample file (dev only)
+      description: Returns a static sample file from the backend/sample directory.
+      tags: [Dev]
+      security: []
       parameters:
-        - name: formType
+        - name: filename
           in: path
           required: true
           schema:
             type: string
-        - name: year
-          in: query
-          required: true
-          schema:
-            type: integer
       responses:
-        '200':
-          description: Form field definitions
+        "200":
+          description: File contents
+        "404":
+          description: File not found
+
+  /agents/auditor:
+    post:
+      operationId: runAuditorAgent
+      summary: Run AuditorAgent
+      description: |
+        Runs the AuditorAgent against a user's tax documents.
+        The agent checks for:
+        - Data quality issues (missing fields, OCR errors)
+        - IRS audit triggers (high deduction ratios, round numbers)
+        - Income cross-references across documents
+        - Produces a structured risk report (LOW / MODERATE / ELEVATED / HIGH)
+      tags: [Agents]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRequest"
+      responses:
+        "200":
+          description: Audit risk report
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FormFieldDefinition'
-        '400':
-          description: Bad request
-        '401':
-          description: Unauthorized
-        '404':
-          description: Form type not found
-        '500':
-          description: Internal server error
+                $ref: "#/components/schemas/AgentResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          description: Firebase not configured
+
+  /agents/accountant:
+    post:
+      operationId: runAccountantAgent
+      summary: Run AccountantAgent
+      description: |
+        Runs the AccountantAgent against a user's tax documents.
+        The agent:
+        - Estimates federal tax liability from income data
+        - Identifies applicable deductions and credits
+        - Compares filing scenarios (MFJ vs MFS, itemize vs standard)
+        - Generates a tax preparation summary
+
+        Run the AuditorAgent first to validate data quality before the AccountantAgent.
+      tags: [Agents]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountantAgentRequest"
+      responses:
+        "200":
+          description: Tax preparation summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          description: Firebase not configured
+
+tags:
+  - name: User
+    description: User profile management
+  - name: Documents
+    description: Tax document retrieval and processing
+  - name: Agents
+    description: AI agent endpoints (dev server only)
+  - name: Dev
+    description: Development and health-check endpoints (dev server only)

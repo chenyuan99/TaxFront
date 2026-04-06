@@ -40,7 +40,13 @@ _fb_project_id, _fb_bucket = _parse_firebase_config()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+FRONTEND_DIST = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+
+app = Flask(
+    __name__,
+    static_folder=FRONTEND_DIST,
+    static_url_path="",
+)
 
 CORS(app, resources={
     r"/*": {
@@ -123,11 +129,16 @@ def add_security_headers(response):
 
 @app.route("/")
 def index():
+    """Serve the frontend app, or return API info if no build exists."""
+    index_html = os.path.join(FRONTEND_DIST, "index.html")
+    if os.path.exists(index_html):
+        return send_from_directory(FRONTEND_DIST, "index.html")
     return jsonify({
         "status": "ok",
         "service": "TaxFront backend (dev server)",
         "firebase": "connected" if firebase_ready else "not configured",
         "routes": ["/health", "/firebase-status", "/agents/auditor", "/agents/accountant"],
+        "hint": "Run 'npm run build' in frontend/ to serve the UI here.",
     })
 
 
@@ -237,6 +248,25 @@ def run_accountant():
     except Exception as e:
         logger.error("AccountantAgent error: %s", e)
         return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# SPA catch-all — must be last so API routes take priority
+# ---------------------------------------------------------------------------
+
+@app.route("/<path:path>")
+def spa_fallback(path: str):
+    """
+    Serve static assets directly (JS/CSS/images); fall back to index.html
+    for any other path so React Router can handle client-side navigation.
+    """
+    asset = os.path.join(FRONTEND_DIST, path)
+    if os.path.exists(asset) and os.path.isfile(asset):
+        return send_from_directory(FRONTEND_DIST, path)
+    index_html = os.path.join(FRONTEND_DIST, "index.html")
+    if os.path.exists(index_html):
+        return send_from_directory(FRONTEND_DIST, "index.html")
+    return jsonify({"error": f"Not found: {path}"}), 404
 
 
 # ---------------------------------------------------------------------------

@@ -1,8 +1,20 @@
 import { auth } from '../firebase';
+import type { components, operations } from '../api/schema.d.ts';
 
 const FUNCTIONS_BASE_URL = 'https://us-central1-taxfront-1e142.cloudfunctions.net';
-const REQUEST_TIMEOUT = 30000; // 30 seconds timeout
+const REQUEST_TIMEOUT = 30000;
 let cachedToken: { value: string; expiry: number } | null = null;
+
+// Re-export generated types for use across the app
+export type UserProfile = components['schemas']['UserProfile'];
+export type TaxDocument = components['schemas']['TaxDocument'];
+export type TaxSummary = components['schemas']['TaxSummary'];
+export type ProcessingResult = components['schemas']['ProcessingResult'];
+export type DocumentMetadata = components['schemas']['DocumentMetadata'];
+export type DocumentStatusResponse = components['schemas']['DocumentStatusResponse'];
+export type AgentRequest = components['schemas']['AgentRequest'];
+export type AccountantAgentRequest = components['schemas']['AccountantAgentRequest'];
+export type AgentResponse = components['schemas']['AgentResponse'];
 
 async function getIdToken(): Promise<string> {
     const user = auth.currentUser;
@@ -10,29 +22,23 @@ async function getIdToken(): Promise<string> {
         throw new Error('No user logged in');
     }
 
-    // Check if we have a cached token that's still valid (with 5-minute buffer)
     const now = Date.now();
     if (cachedToken && cachedToken.expiry - 300000 > now) {
         return cachedToken.value;
     }
 
-    // Get a fresh token
     const token = await user.getIdToken(true);
-    
-    // Cache the token with its expiry time
-    // Firebase tokens typically expire in 1 hour (3600000 ms)
     cachedToken = {
         value: token,
-        expiry: now + 3600000
+        expiry: now + 3600000,
     };
-    
+
     return token;
 }
 
-async function callFunction(endpoint: string, method: 'GET' | 'POST' = 'GET', data?: any) {
+async function callFunction<T>(endpoint: string, method: 'GET' | 'POST' = 'GET', data?: unknown): Promise<T> {
     const token = await getIdToken();
-    
-    // Create AbortController for timeout
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
@@ -40,7 +46,7 @@ async function callFunction(endpoint: string, method: 'GET' | 'POST' = 'GET', da
         const response = await fetch(`${FUNCTIONS_BASE_URL}${endpoint}`, {
             method,
             headers: {
-                'Authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
@@ -54,11 +60,11 @@ async function callFunction(endpoint: string, method: 'GET' | 'POST' = 'GET', da
             throw new Error(`API call failed: ${errorText}`);
         }
 
-        return response.json();
+        return response.json() as Promise<T>;
     } catch (error) {
         if (error instanceof Error) {
             if (error.name === 'AbortError') {
-                throw new Error(`Request timeout after ${REQUEST_TIMEOUT/1000} seconds`);
+                throw new Error(`Request timeout after ${REQUEST_TIMEOUT / 1000} seconds`);
             }
             throw error;
         }
@@ -68,83 +74,21 @@ async function callFunction(endpoint: string, method: 'GET' | 'POST' = 'GET', da
     }
 }
 
-export interface UserProfile {
-    name: string;
-    taxId: string;
-    businessType: string;
-}
-
-export interface TaxDocument {
-    id: string;
-    name: string;
-    originalName?: string;
-    type: string;
-    size: number;
-    uploadDate: string;
-    url: string;
-    path: string;
-    status: 'pending' | 'processed' | 'error';
-    metadata?: {
-        name?: string;
-        tax_id?: string;
-        income?: number;
-        tax_due?: number;
-        tax_year?: string;
-        filing_status?: string;
-        confidence_scores?: Record<string, number>;
-        parser_version?: string;
-        processing_timestamp?: string;
-        extraction_success?: boolean;
-    };
-    error?: string;
-}
-
-export interface TaxSummary {
-    totalDocuments: number;
-    lastUpdated: string | null;
-    documentTypes: Record<string, number>;
-    processingStatus: {
-        processed: number;
-        pending: number;
-        error: number;
-    };
-    recentDocuments: TaxDocument[];
-}
-
-export interface ProcessingResult {
-    success: boolean;
-    documentId: string;
-    error?: string;
-    metadata?: TaxDocument['metadata'];
-}
-
 export const api = {
-    // User Profile
-    createUserProfile: async (profile: UserProfile) => {
-        return callFunction('/create_user_profile', 'POST', profile);
-    },
+    createUserProfile: (profile: UserProfile) =>
+        callFunction<string>('/create_user_profile', 'POST', profile),
 
-    // Tax Documents
-    getTaxDocuments: async () => {
-        return callFunction('/get_tax_documents') as Promise<{ documents: TaxDocument[] }>;
-    },
+    getTaxDocuments: () =>
+        callFunction<operations['getTaxDocuments']['responses'][200]['content']['application/json']>(
+            '/get_tax_documents',
+        ),
 
-    // Tax Summary
-    getTaxSummary: async () => {
-        return callFunction('/get_tax_summary') as Promise<TaxSummary>;
-    },
+    getTaxSummary: () =>
+        callFunction<TaxSummary>('/get_tax_summary'),
 
-    // Document Processing
-    processDocument: async (documentId: string) => {
-        return callFunction('/process_document', 'POST', { documentId }) as Promise<ProcessingResult>;
-    },
+    processDocument: (documentId: string) =>
+        callFunction<ProcessingResult>('/process_document', 'POST', { documentId }),
 
-    // Document Status
-    getDocumentStatus: async (documentId: string) => {
-        return callFunction('/get_document_status', 'GET', { documentId }) as Promise<{
-            status: TaxDocument['status'];
-            metadata?: TaxDocument['metadata'];
-            error?: string;
-        }>;
-    }
+    getDocumentStatus: (documentId: string) =>
+        callFunction<DocumentStatusResponse>(`/get_document_status?documentId=${encodeURIComponent(documentId)}`),
 };
