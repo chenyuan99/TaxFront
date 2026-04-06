@@ -1,82 +1,253 @@
-# Import necessary modules from firebase_admin and firebase_functions.
-from firebase_admin import initialize_app, db  # 'db' is imported but not used in this snippet
-from firebase_functions import https_fn  # Import HTTPS function decorator for Firebase Functions
-from flask import Flask, render_template, send_from_directory  # Import Flask utilities for creating web routes
-import firebase_admin  # Import firebase_admin for initializing Firebase app
-from firebase_admin import credentials, firestore  # Import credentials for Firebase and Firestore client
-from flask import Flask, make_response  # (Redundant) Import Flask and make_response for custom responses
-from flask_cors import CORS  # Import CORS to handle Cross-Origin Resource Sharing
+"""
+TaxFront Flask development server.
 
-# Create a Flask application instance
+This file is for LOCAL DEVELOPMENT only. In production the app runs as
+Firebase Cloud Functions (see parser/functions/main.py).
+
+Firebase credentials are resolved in this order:
+  1. GOOGLE_APPLICATION_CREDENTIALS env var → path to service account JSON
+  2. Application Default Credentials (gcloud auth application-default login)
+  3. No credentials → server starts in limited mode (Firebase routes return 503)
+
+Set OPENAI_API_KEY in your .env file to use the AI agents.
+"""
+
+import os
+import re
+import logging
+
+import firebase_admin
+from firebase_admin import credentials, firestore
+from flask import Flask, jsonify, request, send_from_directory
+from flask_cors import CORS
+from dotenv import load_dotenv
+
+load_dotenv()                          # backend/.env
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))  # root .env
+
+def _parse_firebase_config():
+    """Extract projectId and storageBucket from the JS-object FIREBASE_CONFIG env var."""
+    raw = os.getenv("FIREBASE_CONFIG", "")
+    project_id = re.search(r'projectId:\s*["\']([^"\']+)', raw)
+    bucket     = re.search(r'storageBucket:\s*["\']([^"\']+)', raw)
+    return (
+        project_id.group(1) if project_id else None,
+        bucket.group(1)     if bucket     else None,
+    )
+
+_fb_project_id, _fb_bucket = _parse_firebase_config()
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 
-# Configure CORS settings for the Flask app.
-# This enables cross-origin requests from specified frontend domains.
 CORS(app, resources={
     r"/*": {
         "origins": [
-            "http://localhost:3000", 
+            "http://localhost:3000",
+            "http://localhost:5173",
             "https://taxfront.vercel.app",
-            "https://tax-front.vercel.app", 
-            "https://taxfront.io"
-        ],  # Add your frontend domains here
+            "https://tax-front.vercel.app",
+            "https://taxfront.io",
+        ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
     }
 })
 
-# Initialize Firebase with service account credentials.
-# Replace "path/to/your/service-account-key.json" with the actual path.
-cred = credentials.Certificate("path/to/your/service-account-key.json")
-firebase_admin.initialize_app(cred)
-# Get the Firestore client to interact with the Firestore database.
-db = firestore.client()
+# ---------------------------------------------------------------------------
+# Firebase init — gracefully degrade if credentials are not available
+# ---------------------------------------------------------------------------
 
-# After every request, add additional security headers to the response.
+db = None
+firebase_ready = False
+
+if not firebase_admin._apps:
+    try:
+        sa_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        # Resolve relative to root dir (../) if not found next to backend/
+        if sa_path and not os.path.exists(sa_path):
+            root_path = os.path.join(os.path.dirname(__file__), "..", sa_path)
+            if os.path.exists(root_path):
+                sa_path = root_path
+        if sa_path and os.path.exists(sa_path):
+            cred = credentials.Certificate(sa_path)
+            logger.info("Firebase: using service account from %s", sa_path)
+        else:
+            cred = credentials.ApplicationDefault()
+            logger.info("Firebase: using Application Default Credentials")
+
+        firebase_admin.initialize_app(cred, {
+            "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET") or _fb_bucket or "taxfront.appspot.com",
+            "projectId":     os.getenv("GOOGLE_CLOUD_PROJECT")    or _fb_project_id,
+        })
+        db = firestore.client()
+        firebase_ready = True
+        logger.info("Firebase connected successfully.")
+
+    except Exception as e:
+        logger.warning(
+            "Firebase unavailable — running in limited mode.\n"
+            "  Reason: %s\n"
+            "  To fix: set GOOGLE_APPLICATION_CREDENTIALS to your service account JSON path\n"
+            "  or run: gcloud auth application-default login", e
+        )
+
+
+def require_firebase(f):
+    """Decorator: returns 503 if Firebase is not configured."""
+    from functools import wraps
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not firebase_ready:
+            return jsonify({
+                "error": "Firebase not configured",
+                "hint": "Set GOOGLE_APPLICATION_CREDENTIALS in your .env file "
+                        "or run: gcloud auth application-default login"
+            }), 503
+        return f(*args, **kwargs)
+    return wrapper
+
+
+# ---------------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------------
+
 @app.after_request
 def add_security_headers(response):
-    # 'Cross-Origin-Opener-Policy' helps mitigate side-channel attacks.
-    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin-allow-popups'
-    # 'Cross-Origin-Embedder-Policy' ensures that resources are only loaded from the same origin.
-    response.headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     return response
 
-# Define a route for the root URL.
-@app.route('/')
+
+@app.route("/")
 def index():
-    # Access Firestore 'users' collection and stream all documents.
-    users_ref = db.collection('users')
-    docs = users_ref.stream()
+    return jsonify({
+        "status": "ok",
+        "service": "TaxFront backend (dev server)",
+        "firebase": "connected" if firebase_ready else "not configured",
+        "routes": ["/health", "/firebase-status", "/agents/auditor", "/agents/accountant"],
+    })
 
-    # Print each document's ID and its data to the console.
+
+@app.route("/health")
+def health():
+    return jsonify({
+        "status": "ok",
+        "firebase": firebase_ready,
+        "openai": bool(os.getenv("OPENAI_API_KEY")),
+    })
+
+
+@app.route("/firebase-status")
+@require_firebase
+def firebase_status():
+    """Verify Firestore is reachable by listing top-level collections."""
+    collections = [c.id for c in db.collections()]
+    return jsonify({"status": "ok", "collections": collections})
+
+
+@app.route("/debug/users")
+@require_firebase
+def debug_users():
+    """List sample user IDs from taxDocuments (dev only)."""
+    docs = db.collection("taxDocuments").limit(10).stream()
+    seen = {}
     for doc in docs:
-        print(f'{doc.id} => {doc.to_dict()}')
+        data = doc.to_dict() or {}
+        uid = data.get("userId")
+        if uid and uid not in seen:
+            seen[uid] = {
+                "user_id": uid,
+                "sample_doc_type": data.get("type", "unknown"),
+                "status": data.get("status", "unknown"),
+            }
+    return jsonify({"users": list(seen.values())})
 
-    # Return a simple confirmation message.
-    return "Firestore connected successfully!"
 
-# Call initialize_app() again. Note: This appears redundant since Firebase is already initialized above.
-initialize_app()
-
-# Define a route to serve static JSON files from the 'sample' directory.
-@app.route('/sample/<filename>')
+@app.route("/sample/<filename>")
 def get_json(filename):
-    # Log the requested filename to the console.
-    print(f"Requesting {filename}")
-    # Serve the requested file from the 'sample' directory.
-    return send_from_directory('sample', filename)
+    return send_from_directory("sample", filename)
 
-# Define an HTTPS Firebase Function.
-@https_fn.on_request()
-def httpsflaskexample(req: https_fn.Request) -> https_fn.Response:
-    # Create a Flask request context from the Firebase function's environment.
-    with app.request_context(req.environ):
-        # Dispatch the request using Flask's full dispatch mechanism.
-        return app.full_dispatch_request()
 
-# If this script is run directly, start the Flask development server.
-if __name__ == '__main__':
-    import os
-    # Determine if debug mode should be enabled based on the FLASK_DEBUG environment variable.
-    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() in ['true', '1', 't']
-    app.run(debug=debug_mode)
+# ---------------------------------------------------------------------------
+# Agent routes
+# ---------------------------------------------------------------------------
+
+@app.route("/agents/auditor", methods=["POST"])
+@require_firebase
+def run_auditor():
+    """
+    Run the AuditorAgent against a user's tax documents.
+
+    Body (JSON):
+      user_id  — required, Firebase user ID
+      task     — optional, custom instruction (default: full audit)
+    """
+    body = request.get_json(silent=True) or {}
+    user_id = body.get("user_id", "").strip()
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    task = body.get("task") or (
+        f"Audit all tax documents for user {user_id}. "
+        "Check for data quality issues, IRS audit triggers, income cross-references, "
+        "and produce a full risk report."
+    )
+
+    try:
+        from agents import AuditorAgent
+        agent = AuditorAgent(db=db)
+        result = agent.run(task)
+        return jsonify({"status": "ok", "user_id": user_id, "output": result["output"]})
+    except Exception as e:
+        logger.error("AuditorAgent error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/agents/accountant", methods=["POST"])
+@require_firebase
+def run_accountant():
+    """
+    Run the AccountantAgent against a user's tax documents.
+
+    Body (JSON):
+      user_id        — required, Firebase user ID
+      filing_status  — optional (default: single)
+      task           — optional, custom instruction
+    """
+    body = request.get_json(silent=True) or {}
+    user_id = body.get("user_id", "").strip()
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    filing_status = body.get("filing_status", "single")
+    task = body.get("task") or (
+        f"Prepare a complete tax summary for user {user_id} who files as {filing_status}. "
+        "Aggregate all income, estimate federal tax liability, identify deductions and credits, "
+        "and provide actionable next steps."
+    )
+
+    try:
+        from agents import AccountantAgent
+        agent = AccountantAgent(db=db)
+        result = agent.run(task)
+        return jsonify({"status": "ok", "user_id": user_id, "output": result["output"]})
+    except Exception as e:
+        logger.error("AccountantAgent error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    debug_mode = os.getenv("FLASK_DEBUG", "false").lower() in ("true", "1", "t")
+    port = int(os.getenv("PORT", 8080))
+    logger.info("Starting TaxFront dev server on http://localhost:%d", port)
+    logger.info("Firebase: %s | OpenAI: %s",
+                "ready" if firebase_ready else "NOT configured (limited mode)",
+                "key set" if os.getenv("OPENAI_API_KEY") else "NOT set")
+    app.run(debug=debug_mode, port=port)
