@@ -9,25 +9,40 @@ export default {
             colors: {
                 // Brand colors
                 primary: '#00AAFF',      // Primary brand blue
+                'primary-dark': '#0088CC', // Primary dark variant
                 dark: '#00395D',         // Dark navy blue
+                'dark-hover': '#002D4A', // Dark hover state
                 'light-bg': '#E5F4FF',   // Light blue background
+                'light-bg-hover': '#CCE9FF', // Light background hover
+                // Secondary colors for UI components
+                'text-secondary': '#99B8CC', // Secondary text color for chat
             },
             backgroundColor: {
                 primary: '#00AAFF',
+                'primary-dark': '#0088CC',
                 dark: '#00395D',
+                'dark-hover': '#002D4A',
                 'light-bg': '#E5F4FF',
+                'light-bg-hover': '#CCE9FF',
             },
             textColor: {
                 primary: '#00AAFF',
+                'primary-dark': '#0088CC',
                 dark: '#00395D',
+                'dark-hover': '#002D4A',
+                'secondary': '#99B8CC',
             },
             borderColor: {
                 primary: '#00AAFF',
+                'primary-dark': '#0088CC',
                 dark: '#00395D',
+                'dark-hover': '#002D4A',
             },
             ringColor: {
                 primary: '#00AAFF',
+                'primary-dark': '#0088CC',
                 dark: '#00395D',
+                'dark-hover': '#002D4A',
             },
             fontFamily: {
                 sans: [

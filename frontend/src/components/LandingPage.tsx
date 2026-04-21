@@ -72,7 +72,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                     <div className="flex justify-between h-16">
                         <div className="flex">
                             <div className="flex-shrink-0 flex items-center">
-                                <span className="text-xl font-bold text-[#00AAFF]">TaxFront</span>
+                                <span className="text-xl font-bold text-primary">TaxFront</span>
                             </div>
                             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                                 {navigation.map((item) => (
@@ -82,7 +82,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                             href={item.href}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-[#00395D] hover:border-[#00AAFF]"
+                                            className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-dark hover:border-primary"
                                         >
                                             <item.icon className="w-4 h-4 mr-2" />
                                             {item.name}
@@ -91,7 +91,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                         <Link
                                             key={item.name}
                                             to={item.href}
-                                            className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-[#00395D] hover:border-[#00AAFF]"
+                                            className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-dark hover:border-primary"
                                         >
                                             <item.icon className="w-4 h-4 mr-2" />
                                             {item.name}
@@ -104,7 +104,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                         <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
                             <button
                                 type="button"
-                                className="p-1 rounded-full text-gray-400 hover:text-[#00395D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00AAFF]"
+                                className="p-1 rounded-full text-gray-400 hover:text-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                             >
                                 <span className="sr-only">View notifications</span>
                                 <Bell className="h-6 w-6" />
@@ -112,7 +112,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
 
                             <button
                                 onClick={onGetStarted}
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#00395D] hover:bg-[#002D4A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00AAFF]"
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-dark hover:bg-dark-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                             >
                                 Sign In
                             </button>
@@ -142,14 +142,14 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                     <div className="mt-8 flex gap-x-4">
                                         <Link
                                             to="/register"
-                                            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#00395D] hover:bg-[#002D4A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00AAFF]"
+                                            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-dark hover:bg-dark-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                                         >
                                             Get Started
                                             <ArrowRight className="ml-2 h-5 w-5" />
                                         </Link>
                                         <Link
                                             to="/demo"
-                                            className="inline-flex items-center px-6 py-3 border border-[#00395D] text-base font-medium rounded-md text-[#00395D] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00AAFF]"
+                                            className="inline-flex items-center px-6 py-3 border border-dark text-base font-medium rounded-md text-dark bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                                         >
                                             Live Demo
                                         </Link>
@@ -174,7 +174,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                 <div className="py-16 bg-white">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
-                            <h2 className="text-3xl font-bold text-[#00395D]">
+                            <h2 className="text-3xl font-bold text-dark">
                                 Powerful Features for Modern Tax Management
                             </h2>
                             <p className="mt-4 text-xl text-gray-600">
@@ -188,10 +188,10 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                     key={index}
                                     className="relative bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                                 >
-                                    <div className="absolute -top-4 -left-4 bg-[#00AAFF] rounded-xl p-3">
+                                    <div className="absolute -top-4 -left-4 bg-primary rounded-xl p-3">
                                         <feature.icon className="h-6 w-6 text-white" />
                                     </div>
-                                    <h3 className="mt-4 text-xl font-semibold text-[#00395D]">
+                                    <h3 className="mt-4 text-xl font-semibold text-dark">
                                         {feature.title}
                                     </h3>
                                     <p className="mt-2 text-gray-600">{feature.description}</p>
@@ -205,7 +205,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                 <div className="bg-gray-50 py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
-                            <h2 className="text-3xl font-bold text-[#00395D]">
+                            <h2 className="text-3xl font-bold text-dark">
                                 Trusted by Industry Leaders
                             </h2>
                             <p className="mt-4 text-xl text-gray-600">
@@ -226,7 +226,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                             alt={testimonial.name}
                                         />
                                         <div className="ml-4">
-                                            <p className="text-lg font-semibold text-[#00395D]">
+                                            <p className="text-lg font-semibold text-dark">
                                                 {testimonial.name}
                                             </p>
                                             <p className="text-sm text-gray-500">{testimonial.role}</p>
@@ -243,7 +243,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                 <div className="bg-white py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
-                            <h2 className="text-3xl font-bold text-[#00395D]">
+                            <h2 className="text-3xl font-bold text-dark">
                                 Why Choose TaxFront
                             </h2>
                             <p className="mt-4 text-xl text-gray-600">
@@ -257,7 +257,7 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                                     key={index}
                                     className="flex items-start space-x-4 p-6 bg-gray-50 rounded-xl hover:shadow-md transition-all duration-300"
                                 >
-                                    <CheckCircle2 className="h-6 w-6 text-[#00AAFF] flex-shrink-0" />
+                                    <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0" />
                                     <span className="text-gray-700">{benefit}</span>
                                 </div>
                             ))}
@@ -266,23 +266,23 @@ export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
                 </div>
 
                 {/* CTA Section */}
-                <div className="bg-[#00395D]">
+                <div className="bg-dark">
                     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
                         <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
                             <span className="block">Ready to get started?</span>
-                            <span className="block text-[#00AAFF]">Start your free trial today.</span>
+                            <span className="block text-primary">Start your free trial today.</span>
                         </h2>
                         <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0 space-x-4">
                             <Link
                                 to="/register"
-                                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-[#00395D] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00AAFF]"
+                                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-dark bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                             >
                                 Get Started
                                 <ArrowRight className="ml-2 h-5 w-5" />
                             </Link>
                             <Link
                                 to="/contact"
-                                className="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-[#00395D]/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00AAFF]"
+                                className="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-dark/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                             >
                                 Contact Sales
                             </Link>

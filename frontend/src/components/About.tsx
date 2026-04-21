@@ -108,8 +108,8 @@ export function About() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Hero Section with Video Background */}
-            <div className="relative bg-[#00395D] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#00395D] to-[#00AAFF] opacity-90"></div>
+            <div className="relative bg-dark overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-dark to-primary opacity-90"></div>
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
                     <div className="text-center">
                         <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl">
@@ -121,13 +121,13 @@ export function About() {
                         <div className="mt-8 flex justify-center space-x-4">
                             <Link
                                 to="/register"
-                                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-[#00395D] bg-white hover:bg-gray-50"
+                                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-dark bg-white hover:bg-gray-50"
                             >
                                 Get Started
                             </Link>
                             <Link
                                 to="/contact"
-                                className="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-[#00395D]/50"
+                                className="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-dark/50"
                             >
                                 Contact Sales
                             </Link>
@@ -146,7 +146,7 @@ export function About() {
                                 onClick={() => setActiveTab(tab)}
                                 className={`${
                                     activeTab === tab
-                                        ? 'border-[#00AAFF] text-[#00AAFF]'
+                                        ? 'border-primary text-primary'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm capitalize`}
                             >
@@ -161,7 +161,7 @@ export function About() {
             <div className={`py-16 bg-white ${activeTab !== 'features' && 'hidden'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold text-[#00395D]">Why Choose TaxFront</h2>
+                        <h2 className="text-3xl font-bold text-dark">Why Choose TaxFront</h2>
                         <p className="mt-4 text-xl text-gray-600">
                             Experience the future of tax document management
                         </p>
@@ -174,8 +174,8 @@ export function About() {
                                 className="relative p-8 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                             >
                                 <div className="flex-1">
-                                    <feature.icon className="h-12 w-12 text-[#00AAFF]" />
-                                    <h3 className="mt-4 text-xl font-semibold text-[#00395D]">{feature.title}</h3>
+                                    <feature.icon className="h-12 w-12 text-primary" />
+                                    <h3 className="mt-4 text-xl font-semibold text-dark">{feature.title}</h3>
                                     <p className="mt-4 text-gray-500">{feature.description}</p>
                                 </div>
                             </div>
@@ -188,7 +188,7 @@ export function About() {
             <div className={`py-16 bg-gray-50 ${activeTab !== 'team' && 'hidden'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold text-[#00395D]">Meet Our Team</h2>
+                        <h2 className="text-3xl font-bold text-dark">Meet Our Team</h2>
                         <p className="mt-4 text-xl text-gray-600">
                             Expert professionals dedicated to your success
                         </p>
@@ -209,14 +209,14 @@ export function About() {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                                 </div>
                                 <div className="p-6">
-                                    <h3 className="text-xl font-semibold text-[#00395D]">{member.name}</h3>
-                                    <p className="text-[#00AAFF] font-medium">{member.role}</p>
+                                    <h3 className="text-xl font-semibold text-dark">{member.name}</h3>
+                                    <p className="text-primary font-medium">{member.role}</p>
                                     <p className="mt-3 text-gray-500">{member.bio}</p>
                                     <a
                                         href={member.linkedin}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="mt-4 inline-flex items-center text-[#00AAFF] hover:text-[#00395D]"
+                                        className="mt-4 inline-flex items-center text-primary hover:text-dark"
                                     >
                                         Connect on LinkedIn
                                         <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />
@@ -232,7 +232,7 @@ export function About() {
             <div className={`py-16 bg-white ${activeTab !== 'values' && 'hidden'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold text-[#00395D]">Our Values</h2>
+                        <h2 className="text-3xl font-bold text-dark">Our Values</h2>
                         <p className="mt-4 text-xl text-gray-600">
                             Principles that guide our mission
                         </p>
@@ -245,9 +245,9 @@ export function About() {
                                 className="text-center p-8 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                             >
                                 <div className="flex justify-center">
-                                    <value.icon className="h-12 w-12 text-[#00AAFF]" />
+                                    <value.icon className="h-12 w-12 text-primary" />
                                 </div>
-                                <h3 className="mt-4 text-lg font-semibold text-[#00395D]">{value.title}</h3>
+                                <h3 className="mt-4 text-lg font-semibold text-dark">{value.title}</h3>
                                 <p className="mt-2 text-gray-500">{value.description}</p>
                             </div>
                         ))}
@@ -266,8 +266,8 @@ export function About() {
                                     key={index}
                                     className="bg-gray-50 rounded-2xl p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                                 >
-                                    <stat.icon className="h-8 w-8 text-[#00AAFF] mx-auto" />
-                                    <p className="mt-4 text-3xl font-bold text-[#00395D]">{stat.value}</p>
+                                    <stat.icon className="h-8 w-8 text-primary mx-auto" />
+                                    <p className="mt-4 text-3xl font-bold text-dark">{stat.value}</p>
                                     <p className="mt-1 text-gray-500">{stat.label}</p>
                                 </div>
                             ))}
@@ -279,14 +279,14 @@ export function About() {
                 <div className="py-16 bg-gray-50">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
-                            <h2 className="text-3xl font-bold text-[#00395D]">Our Journey</h2>
+                            <h2 className="text-3xl font-bold text-dark">Our Journey</h2>
                             <p className="mt-4 text-xl text-gray-600">
                                 Key milestones in our growth
                             </p>
                         </div>
 
                         <div className="mt-12 relative">
-                            <div className="absolute top-0 left-1/2 w-0.5 h-full bg-[#00AAFF] -ml-0.5"></div>
+                            <div className="absolute top-0 left-1/2 w-0.5 h-full bg-primary -ml-0.5"></div>
                             <div className="space-y-12">
                                 {milestones.map((milestone, index) => (
                                     <div 
@@ -296,10 +296,10 @@ export function About() {
                                         } md:w-1/2`}
                                     >
                                         <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
-                                            <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-[#00AAFF] text-white font-semibold text-sm absolute top-6 -left-4">
+                                            <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-white font-semibold text-sm absolute top-6 -left-4">
                                                 {milestone.year.slice(-2)}
                                             </span>
-                                            <h3 className="text-lg font-semibold text-[#00395D]">{milestone.title}</h3>
+                                            <h3 className="text-lg font-semibold text-dark">{milestone.title}</h3>
                                             <p className="mt-2 text-gray-500">{milestone.description}</p>
                                         </div>
                                     </div>
@@ -311,7 +311,7 @@ export function About() {
             </div>
 
             {/* CTA Section */}
-            <div className="bg-[#00395D]">
+            <div className="bg-dark">
                 <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <h2 className="text-3xl font-bold text-white">Ready to Get Started?</h2>
@@ -321,13 +321,13 @@ export function About() {
                         <div className="mt-8 flex justify-center space-x-4">
                             <Link
                                 to="/register"
-                                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-[#00395D] bg-white hover:bg-gray-50"
+                                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-dark bg-white hover:bg-gray-50"
                             >
                                 Start Free Trial
                             </Link>
                             <Link
                                 to="/demo"
-                                className="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-[#00395D]/50"
+                                className="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-dark/50"
                             >
                                 Request Demo
                             </Link>

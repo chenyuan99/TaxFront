@@ -161,14 +161,14 @@ export function TaxForms() {
                 <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h1 className="text-3xl font-bold text-[#00395D] mb-2">Tax Forms Guide</h1>
+                            <h1 className="text-3xl font-bold text-dark mb-2">Tax Forms Guide</h1>
                             <p className="text-gray-600">
                                 Find and understand the tax forms you need for your situation.
                             </p>
                         </div>
                         <Link
                             to="/dashboard"
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-[#00395D] hover:text-[#00AAFF] transition-colors"
+                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-dark hover:text-primary transition-colors"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Back to Dashboard
@@ -181,14 +181,14 @@ export function TaxForms() {
                             <input
                                 type="text"
                                 placeholder="Search forms by name or description..."
-                                className="pl-10 pr-4 py-3 w-full border border-gray-300 rounded-lg focus:ring-[#00AAFF] focus:border-[#00AAFF] bg-white shadow-sm"
+                                className="pl-10 pr-4 py-3 w-full border border-gray-300 rounded-lg focus:ring-primary focus:border-primary bg-white shadow-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                         <div>
                             <select
-                                className="w-full border border-gray-300 rounded-lg py-3 pl-4 pr-8 focus:ring-[#00AAFF] focus:border-[#00AAFF] bg-white shadow-sm"
+                                className="w-full border border-gray-300 rounded-lg py-3 pl-4 pr-8 focus:ring-primary focus:border-primary bg-white shadow-sm"
                                 value={selectedCategory}
                                 onChange={(e) => setSelectedCategory(e.target.value)}
                             >
@@ -210,20 +210,20 @@ export function TaxForms() {
                                 <div className="flex items-start justify-between">
                                     <div>
                                         <div className="flex items-center mb-2">
-                                            <FileText className="h-5 w-5 text-[#00AAFF] mr-2" />
-                                            <h3 className="text-lg font-semibold text-[#00395D]">
+                                            <FileText className="h-5 w-5 text-primary mr-2" />
+                                            <h3 className="text-lg font-semibold text-dark">
                                                 {form.name}
                                             </h3>
                                         </div>
                                         <p className="text-gray-600 mb-4">{form.description}</p>
                                     </div>
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#E5F4FF] text-[#00395D]">
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-light-bg text-dark">
                                         Due: {form.deadline}
                                     </span>
                                 </div>
 
                                 <div className="mt-4">
-                                    <h4 className="text-sm font-medium text-[#00395D] mb-2 flex items-center">
+                                    <h4 className="text-sm font-medium text-dark mb-2 flex items-center">
                                         <Info className="h-4 w-4 mr-1" />
                                         Common Uses
                                     </h4>
@@ -233,7 +233,7 @@ export function TaxForms() {
                                                 key={index}
                                                 className="flex items-center text-sm text-gray-600"
                                             >
-                                                <span className="w-1.5 h-1.5 rounded-full bg-[#00AAFF] mr-2"></span>
+                                                <span className="w-1.5 h-1.5 rounded-full bg-primary mr-2"></span>
                                                 {use}
                                             </li>
                                         ))}
@@ -245,7 +245,7 @@ export function TaxForms() {
                                         href={`https://www.irs.gov/forms-pubs/about-form-${form.id.toLowerCase()}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center text-sm text-[#00AAFF] hover:text-[#00395D] transition-colors"
+                                        className="inline-flex items-center text-sm text-primary hover:text-dark transition-colors"
                                     >
                                         <ExternalLink className="h-4 w-4 mr-1" />
                                         View Official Form
