@@ -8,8 +8,16 @@ export default defineConfig({
         exclude: ['lucide-react'],
     },
     test: {
-        environment: 'node',
+        environment: 'happy-dom',
         globals: true,
         setupFiles: ['./src/test/setup.ts'],
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'json', 'html'],
+            exclude: [
+                'node_modules/',
+                'src/test/',
+            ]
+        }
     },
 })
