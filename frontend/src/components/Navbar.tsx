@@ -46,7 +46,7 @@ export function Navbar() {
                     {/* Desktop Navigation */}
                     <div className="flex">
                         <div className="flex-shrink-0 flex items-center">
-                            <span className="text-xl font-bold text-[#00AAFF]">TaxFront</span>
+                            <span className="text-xl font-bold text-primary">TaxFront</span>
                         </div>
                         <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                             {navigation.map((item) => (
@@ -55,8 +55,8 @@ export function Navbar() {
                                     to={item.href}
                                     className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
                                         location.pathname === item.href
-                                            ? 'text-[#00395D] border-b-2 border-[#00395D]'
-                                            : 'text-gray-500 hover:text-[#00395D] hover:border-[#00AAFF]'
+                                            ? 'text-dark border-b-2 border-dark'
+                                            : 'text-gray-500 hover:text-dark hover:border-primary'
                                     }`}
                                 >
                                     {item.icon ? (
@@ -93,7 +93,7 @@ export function Navbar() {
                                 href="https://github.com/chenyuan99/TaxFront/issues"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-[#00395D] hover:border-[#00AAFF]"
+                                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-dark hover:border-primary"
                             >
                                 <Bug className="w-4 h-4 mr-2" />
                                 Tickets
@@ -102,7 +102,7 @@ export function Navbar() {
                                 href="https://github.com/chenyuan99/TaxFront/blob/main/CHANGELOG.md"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-[#00395D] hover:border-[#00AAFF]"
+                                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-dark hover:border-primary"
                             >
                                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -116,7 +116,7 @@ export function Navbar() {
                     <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
                         <button
                             type="button"
-                            className="p-1 rounded-full text-gray-400 hover:text-[#00395D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00AAFF]"
+                            className="p-1 rounded-full text-gray-400 hover:text-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                         >
                             <span className="sr-only">View notifications</span>
                             <Bell className="h-6 w-6" />
@@ -126,10 +126,10 @@ export function Navbar() {
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00AAFF] rounded-full"
+                                className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary rounded-full"
                             >
-                                <div className="h-9 w-9 rounded-full bg-[#E5F4FF] flex items-center justify-center hover:bg-[#CCE9FF] transition-colors">
-                                    <User className="h-5 w-5 text-[#00395D]" />
+                                <div className="h-9 w-9 rounded-full bg-light-bg flex items-center justify-center hover:bg-light-bg-hover transition-colors">
+                                    <User className="h-5 w-5 text-dark" />
                                 </div>
                             </button>
 
@@ -141,8 +141,8 @@ export function Navbar() {
                             >
                                 <div className="px-4 py-3 space-y-1">
                                     <div className="flex items-center space-x-3">
-                                        <div className="h-10 w-10 rounded-full bg-[#E5F4FF] flex items-center justify-center">
-                                            <User className="h-6 w-6 text-[#00395D]" />
+                                        <div className="h-10 w-10 rounded-full bg-light-bg flex items-center justify-center">
+                                            <User className="h-6 w-6 text-dark" />
                                         </div>
                                         <div>
                                             <p className="text-sm font-medium text-gray-900 truncate">
@@ -179,7 +179,7 @@ export function Navbar() {
                     <div className="flex items-center sm:hidden">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-[#00395D] hover:bg-[#E5F4FF] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#00AAFF]"
+                            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-dark hover:bg-light-bg focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
                         >
                             <span className="sr-only">Open main menu</span>
                             {isOpen ? (
@@ -202,8 +202,8 @@ export function Navbar() {
                                 to={item.href}
                                 className={`block pl-3 pr-4 py-2 text-base font-medium ${
                                     location.pathname === item.href
-                                        ? 'bg-[#E5F4FF] border-[#00395D] text-[#00395D]'
-                                        : 'border-transparent text-gray-500 hover:bg-[#E5F4FF] hover:border-[#00AAFF] hover:text-[#00395D]'
+                                        ? 'bg-light-bg border-dark text-dark'
+                                        : 'border-transparent text-gray-500 hover:bg-light-bg hover:border-primary hover:text-dark'
                                 }`}
                                 onClick={() => setIsOpen(false)}
                             >
@@ -243,12 +243,12 @@ export function Navbar() {
                     <div className="pt-4 pb-3 border-t border-gray-200">
                         <div className="flex items-center px-4">
                             <div className="flex-shrink-0">
-                                <div className="h-10 w-10 rounded-full bg-[#E5F4FF] flex items-center justify-center">
-                                    <User className="h-6 w-6 text-[#00395D]" />
+                                <div className="h-10 w-10 rounded-full bg-light-bg flex items-center justify-center">
+                                    <User className="h-6 w-6 text-dark" />
                                 </div>
                             </div>
                             <div className="ml-3">
-                                <div className="text-base font-medium text-[#00395D] truncate">
+                                <div className="text-base font-medium text-dark truncate">
                                     {user?.email}
                                 </div>
                             </div>
@@ -256,7 +256,7 @@ export function Navbar() {
                         <div className="mt-3 space-y-1">
                             <button
                                 onClick={handleSignOut}
-                                className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-[#00395D] hover:bg-[#E5F4FF]"
+                                className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-dark hover:bg-light-bg"
                             >
                                 <div className="flex items-center">
                                     <LogOut className="h-5 w-5 mr-2" />
