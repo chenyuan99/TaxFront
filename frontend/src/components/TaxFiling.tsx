@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowLeft, FileText, DollarSign, Building, User, Home, Briefcase, Save, Send } from 'lucide-react';
+import { Shield, ArrowLeft, FileText, DollarSign, Send } from 'lucide-react';
 
 interface TaxForm {
     personalInfo: {

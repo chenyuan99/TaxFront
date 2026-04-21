@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { auth } from '../firebase';
 import { User, LogOut, LayoutDashboard, Briefcase, Bug, Menu, X, Bell } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useClickOutside } from '../hooks/useClickOutside';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -31,8 +29,6 @@ export function Navbar() {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
-    const isActive = (path: string) => location.pathname === path;
 
     const handleSignOut = () => {
         auth.signOut();

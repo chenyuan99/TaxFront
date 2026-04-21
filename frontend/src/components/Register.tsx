@@ -56,8 +56,8 @@ export function Register() {
             });
 
             navigate('/dashboard');
-        } catch (err: any) {
-            setError(err.message || 'Failed to create account');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to create account');
         } finally {
             setLoading(false);
         }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowLeft, FileText, Search, ExternalLink, Info } from 'lucide-react';
+import { ArrowLeft, FileText, Search, ExternalLink, Info } from 'lucide-react';
 
 interface TaxForm {
     id: string;
