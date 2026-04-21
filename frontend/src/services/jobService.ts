@@ -10,7 +10,7 @@ export type Job = {
     createdAt: string;
     updatedAt: string;
     error?: string;
-    result?: any;
+    result?: unknown;
     userId: string;
 };
 
@@ -68,7 +68,7 @@ class JobService {
         jobId: string,
         status: Job['status'],
         error?: string,
-        result?: any
+        result?: unknown
     ): Promise<void> {
         const jobRef = doc(this.jobsCollection, jobId);
         const updateData: Partial<Job> = {

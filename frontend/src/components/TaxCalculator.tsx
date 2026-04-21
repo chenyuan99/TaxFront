@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Shield, ArrowLeft, Calculator, DollarSign, Percent, RefreshCw } from 'lucide-react';
+import { Calculator, DollarSign, Percent, RefreshCw } from 'lucide-react';
 
 interface TaxBracket {
     min: number;
@@ -23,7 +22,6 @@ export function TaxCalculator() {
     const [stateTax, setStateTax] = useState<number | null>(null);
     const [effectiveRate, setEffectiveRate] = useState<number | null>(null);
     const [stateEffectiveRate, setStateEffectiveRate] = useState<number | null>(null);
-    const [showDetails, setShowDetails] = useState<boolean>(false);
 
     const taxBrackets: Record<string, TaxBracket[]> = {
         single: [
@@ -75,10 +73,9 @@ export function TaxCalculator() {
         // Calculate Federal Tax
         let totalTax = 0;
         const brackets = taxBrackets[filingStatus];
-        let bracketDetails: { rate: number; amount: number }[] = [];
+        const bracketDetails: { rate: number; amount: number }[] = [];
 
-        brackets.forEach((bracket, index) => {
-            const prevMax = index > 0 ? brackets[index - 1].max! : 0;
+        brackets.forEach((bracket) => {
             const taxableInBracket = Math.min(
                 incomeNum > bracket.min ? incomeNum - bracket.min : 0,
                 bracket.max ? bracket.max - bracket.min : incomeNum - bracket.min

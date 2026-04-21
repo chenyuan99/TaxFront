@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shield, ArrowLeft, Target, Users, Award, Briefcase, Heart, Globe, CheckCircle2, Zap, Lock, ChartBar, FileText, Cloud } from 'lucide-react';
+import { Shield, ArrowLeft, Target, Users, Heart, Globe, Lock, ChartBar, FileText, Cloud } from 'lucide-react';
 import { useState } from 'react';
 
 export function About() {

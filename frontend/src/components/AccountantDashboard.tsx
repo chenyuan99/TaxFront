@@ -1,14 +1,10 @@
 import React, {useState, useEffect} from 'react';
-import {db, auth} from '../firebase';
-import {collection, query, where, orderBy, getDocs} from 'firebase/firestore';
-import {FileText, Users, Clock, Filter, Search, CheckCircle, AlertCircle, Calendar} from 'lucide-react';
-import type {TaxDocument} from '../types/document';
+import {auth} from '../firebase';
+import {Search, CheckCircle, Users, Clock} from 'lucide-react';
 import type {Client} from '../types/users';
 
 export function AccountantDashboard() {
     const [clients, setClients] = useState<Client[]>([]);
-    const [documents, setDocuments] = useState<TaxDocument[]>([]);
-    const [selectedClient, setSelectedClient] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [isLoading, setIsLoading] = useState(true);

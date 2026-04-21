@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage, auth } from '../firebase';
-import { collection, query, orderBy, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Upload, LogOut, RefreshCcw } from 'lucide-react';
+import { Upload, RefreshCcw } from 'lucide-react';
 import { Chat } from './Chat';
-import { DocumentList } from './DocumentList';
 import { api, TaxDocument, TaxSummary } from '../services/api';
 
 // Types
@@ -24,7 +23,7 @@ type UploadTask = {
     progress: number;
     error?: string;
     url?: string;
-    metadata?: any;
+    metadata?: unknown;
 };
 
 export function Dashboard() {
@@ -32,7 +31,6 @@ export function Dashboard() {
     const [documents, setDocuments] = useState<TaxDocument[]>([]);
     const [summary, setSummary] = useState<TaxSummary | null>(null);
     const [uploadTasks, setUploadTasks] = useState<UploadTask[]>([]);
-    const [uploadStatus, setUploadStatus] = useState<UploadStatus[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingDocId, setProcessingDocId] = useState<string | null>(null);
     const [archivingDocId, setArchivingDocId] = useState<string | null>(null);
@@ -41,10 +39,6 @@ export function Dashboard() {
 
     // Utility Functions
     const addUploadStatus = (status: UploadStatus) => {
-        setUploadStatus(prev => [...prev, { 
-            ...status, 
-            timestamp: new Date().toISOString() 
-        }]);
         if (status.error) {
             console.error(`Upload Error at ${status.step}:`, status.error);
         }
@@ -217,10 +211,10 @@ export function Dashboard() {
 
     const handleProcessDocument = async (docId: string) => {
         if (processingDocId) return; // Prevent multiple processing
-        
+
         setProcessingDocId(docId);
         try {
-            const result = await processDocument(docId);
+            await processDocument(docId);
             addUploadStatus({
                 step: 'Processing Complete',
                 success: true,
@@ -274,9 +268,6 @@ export function Dashboard() {
         }
     };
 
-    const handleSignOut = () => {
-        auth.signOut();
-    };
 
     // Render Loading State
     if (loading) {

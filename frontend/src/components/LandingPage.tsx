@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shield, ArrowRight, CheckCircle2, FileText, Cloud, Lock, ChartBar, Zap, Users, LayoutDashboard, Briefcase, Bug, Bell } from 'lucide-react';
+import { ArrowRight, CheckCircle2, FileText, Cloud, Lock, ChartBar, LayoutDashboard, Briefcase, Bug, Bell } from 'lucide-react';
 
 export function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
     const navigation = [
