@@ -75,10 +75,15 @@ jobs:
         pip install -r requirements.txt
         pip install firebase-admin firebase-functions
 
+    - name: Decode service account credentials
+      run: |
+        echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' | base64 -d > /tmp/service-account-key.json
+      shell: bash
+
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
       with:
-        credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+        credentials_json: '@/tmp/service-account-key.json'
 
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
