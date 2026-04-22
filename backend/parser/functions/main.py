@@ -8,13 +8,47 @@ import tempfile
 import os
 from urllib.parse import urlparse
 
-# Initialize Firebase Admin
-cred = credentials.ApplicationDefault()
-firebase_admin.initialize_app(cred, {
-    'storageBucket': os.getenv('FIREBASE_STORAGE_BUCKET', 'taxfront.appspot.com')
-})
-db = firestore.client()
-bucket = storage.bucket()  # Get default bucket
+# Firebase clients (lazy initialized)
+_db = None
+_bucket = None
+_app = None
+
+
+def _init_firebase():
+    """Initialize Firebase Admin if not already done"""
+    global _app
+    if _app is None:
+        try:
+            cred = credentials.ApplicationDefault()
+            _app = firebase_admin.initialize_app(cred, {
+                'storageBucket': os.getenv('FIREBASE_STORAGE_BUCKET', 'taxfront.appspot.com')
+            })
+        except ValueError:
+            # App already initialized
+            _app = firebase_admin.get_app()
+
+
+def get_db():
+    """Get Firestore database client"""
+    global _db
+    _init_firebase()
+    if _db is None:
+        _db = firestore.client()
+    return _db
+
+
+def get_bucket():
+    """Get storage bucket"""
+    global _bucket
+    _init_firebase()
+    if _bucket is None:
+        _bucket = storage.bucket()
+    return _bucket
+
+
+# For backwards compatibility with lazy initialization
+db = None
+bucket = None
 
 def get_cors_headers(origin):
     return {
@@ -121,7 +155,7 @@ def create_user_profile(req: https_fn.Request) -> https_fn.Response:
         data['updatedAt'] = datetime.now().isoformat()
         
         # Store in Firestore
-        db.collection('users').document(uid).set(data, merge=True)
+        get_db().collection('users').document(uid).set(data, merge=True)
         
         return https_fn.Response('Profile updated successfully')
     except Exception as e:
@@ -145,7 +179,7 @@ def get_tax_documents(req: https_fn.Request) -> https_fn.Response:
         uid = decoded_token['uid']
         
         # Query documents
-        docs = db.collection('taxDocuments').where('userId', '==', uid).stream()
+        docs = get_db().collection('taxDocuments').where('userId', '==', uid).stream()
         
         # Format response
         documents = []
@@ -204,7 +238,7 @@ def process_new_tax_document(
                 blob_path = url.split('/', 3)[3]  # Skip gs://bucket/
                 
             # Get blob from default bucket
-            blob = bucket.blob(blob_path)
+            blob = get_bucket().blob(blob_path)
             
             # Create a temporary file
             with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(data['name'])[1]) as temp_file:
@@ -242,7 +276,7 @@ def process_new_tax_document(
             document.reference.update(update_data)
             
             # Update user's document summary
-            user_ref = db.collection('users').document(data['userId'])
+            user_ref = get_db().collection('users').document(data['userId'])
             user_ref.set({
                 'documentCount': firestore.Increment(1),
                 'lastUploadAt': datetime.now().isoformat(),
@@ -284,10 +318,10 @@ def get_tax_summary(req: https_fn.Request) -> https_fn.Response:
         uid = decoded_token['uid']
         
         # Get user's profile and documents
-        user_ref = db.collection('users').document(uid)
+        user_ref = get_db().collection('users').document(uid)
         user_data = user_ref.get().to_dict() or {}
         
-        docs_query = (db.collection('taxDocuments')
+        docs_query = (get_db().collection('taxDocuments')
                      .where('userId', '==', uid)
                      .order_by('uploadDate', direction=firestore.Query.DESCENDING)
                      .limit(100))
@@ -361,7 +395,7 @@ def process_document(req: https_fn.Request) -> https_fn.Response:
         document_id = data['documentId']
         
         # Get document reference
-        doc_ref = db.collection('taxDocuments').document(document_id)
+        doc_ref = get_db().collection('taxDocuments').document(document_id)
         doc = doc_ref.get()
         
         if not doc.exists:
@@ -396,7 +430,7 @@ def process_document(req: https_fn.Request) -> https_fn.Response:
                 blob_path = url.split('/', 3)[3]  # Skip gs://bucket/
                 
             # Get blob from default bucket
-            blob = bucket.blob(blob_path)
+            blob = get_bucket().blob(blob_path)
             
             # Create temporary file
             with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(doc_data['name'])[1]) as temp_file:
@@ -485,7 +519,7 @@ def get_document_status(req: https_fn.Request) -> https_fn.Response:
             )
             
         # Get document
-        doc_ref = db.collection('taxDocuments').document(document_id)
+        doc_ref = get_db().collection('taxDocuments').document(document_id)
         doc = doc_ref.get()
         
         if not doc.exists:
