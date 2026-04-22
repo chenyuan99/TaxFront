@@ -78,11 +78,16 @@ jobs:
         REACT_APP_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         REACT_APP_FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
     
+    - name: Decode service account credentials
+      run: |
+        echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' | base64 -d > /tmp/service-account-key.json
+      shell: bash
+
     - name: Deploy to Firebase
       uses: FirebaseExtended/action-hosting-deploy@v0
       with:
         repoToken: '${{ secrets.GITHUB_TOKEN }}'
-        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+        firebaseServiceAccount: '@/tmp/service-account-key.json'
         channelId: live
         projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
       env:
