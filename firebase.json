@@ -25,5 +25,12 @@
         "*.local"
       ]
     }
-  ]
+  ],
+  "targets": {
+    "hosting": {
+      "production": [
+        "taxfront"
+      ]
+    }
+  }
 }
