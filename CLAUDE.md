@@ -123,3 +123,8 @@ TaxFront is a full-stack tax document management platform with a React frontend 
 
 - **Frontend**: React 18.3, Vite 6.4, TailwindCSS 3.4, TypeScript 5.7
 - **Backend**: Python 3.12+, Flask, LangChain, Firebase Admin SDK, PyPDF2
+
+## AI Model Standards
+- **Mandatory Model**: AI agents (Accountant and Auditor) MUST use `gemini-3-flash-preview`. 
+- **Tool Calling**: Agents must be configured with `maxSteps` (e.g., 5) to ensure multi-turn tool calling is executed automatically.
+- **Handling Issues**: Sticking with `gemini-3-flash-preview` is a strategic decision despite its preview status and potential requirements like `thought_signature`. All implementation should prioritize compatibility with this model.
