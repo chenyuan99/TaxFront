@@ -4,6 +4,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { runAccountantAgent } from "./flows/accountant";
 import { runAuditorAgent } from "./flows/auditor";
+import { extractTaxDocument } from "./flows/extractor";
 
 initializeApp();
 
@@ -110,15 +111,30 @@ export const getTaxSummary = onCall({ cors: true }, async (request) => {
 });
 
 // ---------------------------------------------------------------------------
-// Firestore trigger: mark new documents as processed
+// Firestore trigger: extract structured data from newly uploaded tax documents
 // ---------------------------------------------------------------------------
 
-export const processNewTaxDocument = onDocumentCreated("taxDocuments/{documentId}", async (event) => {
-  const document = event.data;
-  if (!document) return;
+export const processNewTaxDocument = onDocumentCreated(
+  { document: "taxDocuments/{documentId}", timeoutSeconds: 300, memory: "512MiB" },
+  async (event) => {
+    const document = event.data;
+    if (!document) return;
 
-  await document.ref.update({
-    processedAt: new Date().toISOString(),
-    status: "processed",
-  });
-});
+    const data = document.data();
+    const url: string | undefined = data?.url;
+    const name: string = data?.name ?? data?.originalName ?? "document.pdf";
+    const mimeType: string = data?.type ?? "";
+
+    if (!url) {
+      await document.ref.update({
+        status: "error",
+        errorMessage: "No download URL in document record — cannot extract data",
+        processedAt: new Date().toISOString(),
+      });
+      return;
+    }
+
+    const db = getFirestore();
+    await extractTaxDocument(db, document.id, url, name, mimeType);
+  }
+);
