@@ -125,6 +125,7 @@ TaxFront is a full-stack tax document management platform with a React frontend 
 - **Backend**: Python 3.12+, Flask, LangChain, Firebase Admin SDK, PyPDF2
 
 ## AI Model Standards
-- **Mandatory Model**: AI agents (Accountant and Auditor) MUST use `gemini-3-flash-preview`. 
-- **Tool Calling**: Agents must be configured with `maxSteps` (e.g., 5) to ensure multi-turn tool calling is executed automatically.
-- **Handling Issues**: Sticking with `gemini-3-flash-preview` is a strategic decision despite its preview status and potential requirements like `thought_signature`. All implementation should prioritize compatibility with this model.
+- **Mandatory Model**: AI agents (Accountant and Auditor) MUST use `googleai/gemini-2.5-flash`.
+- **Tool Calling**: Agents must be configured with `maxTurns: 5` in `ai.generate()` to ensure multi-turn tool calling completes automatically.
+- **Why not gemini-3-flash-preview**: Gemini 3 requires mandatory `thoughtSignature` fields on every function call part in multi-turn history. The current `@genkit-ai/googleai` SDK (v1.28.0) drops these signatures in `fromFunctionCall`, causing 400 errors during tool-calling loops. Revisit when Genkit ships the fix.
+- **Why gemini-2.5-flash**: Thought signatures are optional (not mandatory) for Gemini 2.5 function calls, so Genkit's current implementation works correctly. It is a newer and more capable model than what was originally used.
