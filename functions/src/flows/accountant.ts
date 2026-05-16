@@ -31,9 +31,10 @@ export async function runAccountantAgent(db: Firestore, input: AccountantInput):
   const prompt = userContext + (task ?? defaultTask);
 
   const { text } = await ai.generate({
-    model: "googleai/gemini-2.0-flash",
+    model: "googleai/gemini-3-flash-preview",
     system: loadPrompt("accountant"),
     prompt,
+    maxTurns: 5,
     tools: [
       docTools.fetchUserDocuments,
       docTools.fetchDocumentDetails,

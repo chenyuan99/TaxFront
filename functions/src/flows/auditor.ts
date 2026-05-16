@@ -26,9 +26,10 @@ export async function runAuditorAgent(db: Firestore, input: AuditorInput): Promi
   const prompt = userContext + (task ?? defaultTask);
 
   const { text } = await ai.generate({
-    model: "googleai/gemini-2.0-flash",
+    model: "googleai/gemini-3-flash-preview",
     system: loadPrompt("auditor"),
     prompt,
+    maxTurns: 5,
     tools: [
       docTools.fetchUserDocuments,
       docTools.fetchDocumentDetails,
