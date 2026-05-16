@@ -92,3 +92,4 @@ out
 # Cache
 .eslintcache
 .stylelintcache
+.vercel
