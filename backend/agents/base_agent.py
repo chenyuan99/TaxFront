@@ -17,6 +17,7 @@ Design notes
 """
 
 import logging
+from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional
 
 from langchain.agents import create_agent
@@ -81,8 +82,15 @@ class BaseAgent:
     # Interface for subclasses
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _load_skill(skill_name: str) -> str:
+        path = Path(__file__).parent / "skills" / f"{skill_name}.md"
+        return path.read_text(encoding="utf-8")
+
     def _get_system_prompt(self) -> str:
-        raise NotImplementedError
+        # Convention: AccountantAgent → skills/accountant.md
+        skill_name = type(self).__name__.removesuffix("Agent").lower()
+        return self._load_skill(skill_name)
 
     def _get_specialized_tools(self) -> List[BaseTool]:
         raise NotImplementedError
