@@ -27,11 +27,4 @@
       ]
     }
   ],
-  "targets": {
-    "hosting": {
-      "production": [
-        "taxfront"
-      ]
-    }
-  }
 }
