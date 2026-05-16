@@ -2,27 +2,23 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import { defineSecret } from "firebase-functions/params";
 import { runAccountantAgent } from "./flows/accountant";
 import { runAuditorAgent } from "./flows/auditor";
 
 initializeApp();
-
-const GOOGLE_GENAI_API_KEY = defineSecret("GOOGLE_GENAI_API_KEY");
 
 // ---------------------------------------------------------------------------
 // AI agent functions (Gen 2 — higher memory, longer timeout)
 // ---------------------------------------------------------------------------
 
 export const runAccountant = onCall(
-  { secrets: [GOOGLE_GENAI_API_KEY], memory: "1GiB", timeoutSeconds: 300, cors: true },
+  { memory: "1GiB", timeoutSeconds: 300, cors: true },
   async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Must be authenticated");
 
     const { userId, filingStatus, task } = request.data as Record<string, string>;
     if (!userId) throw new HttpsError("invalid-argument", "userId is required");
 
-    process.env.GOOGLE_GENAI_API_KEY = GOOGLE_GENAI_API_KEY.value();
     const db = getFirestore();
 
     try {
@@ -35,14 +31,13 @@ export const runAccountant = onCall(
 );
 
 export const runAuditor = onCall(
-  { secrets: [GOOGLE_GENAI_API_KEY], memory: "1GiB", timeoutSeconds: 300, cors: true },
+  { memory: "1GiB", timeoutSeconds: 300, cors: true },
   async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Must be authenticated");
 
     const { userId, task } = request.data as Record<string, string>;
     if (!userId) throw new HttpsError("invalid-argument", "userId is required");
 
-    process.env.GOOGLE_GENAI_API_KEY = GOOGLE_GENAI_API_KEY.value();
     const db = getFirestore();
 
     try {
