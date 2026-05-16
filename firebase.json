@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "taxfront-1e142",
     "public": "frontend/dist",
     "ignore": [
       "firebase.json",
