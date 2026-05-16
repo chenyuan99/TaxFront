@@ -36,6 +36,25 @@ export function Dashboard() {
     const [archivingDocId, setArchivingDocId] = useState<string | null>(null);
     const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
     const [selectedDocToArchive, setSelectedDocToArchive] = useState<TaxDocument | null>(null);
+    const [aiResponse, setAiResponse] = useState<string | null>(null);
+    const [isAiLoading, setIsAiLoading] = useState(false);
+
+    // Utility Functions
+    const handleRunAi = async (type: 'accountant' | 'auditor') => {
+        setIsAiLoading(true);
+        setAiResponse(null);
+        try {
+            const result = type === 'accountant' 
+                ? await api.runAccountant({ filingStatus: 'single', task: 'Review my tax situation' })
+                : await api.runAuditor({ task: 'Perform a risk assessment' });
+            setAiResponse(result.output);
+        } catch (error) {
+            console.error('AI Agent error:', error);
+            setAiResponse('Error: Failed to get response from AI agent.');
+        } finally {
+            setIsAiLoading(false);
+        }
+    };
 
     // Utility Functions
     const addUploadStatus = (status: UploadStatus) => {
@@ -324,6 +343,34 @@ export function Dashboard() {
                         </div>
                     </div>
                 )}
+
+                <div className="bg-white rounded-lg shadow p-6 mb-8">
+                    <h2 className="text-lg font-medium mb-4">AI Tax Analysis</h2>
+                    <div className="flex space-x-4 mb-6">
+                        <button
+                            onClick={() => handleRunAi('accountant')}
+                            disabled={isAiLoading}
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:bg-indigo-300 flex items-center"
+                        >
+                            {isAiLoading ? 'Analyzing...' : 'Consult AI Accountant'}
+                        </button>
+                        <button
+                            onClick={() => handleRunAi('auditor')}
+                            disabled={isAiLoading}
+                            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:bg-red-300 flex items-center"
+                        >
+                            {isAiLoading ? 'Analyzing...' : 'Run AI Auditor Risk Check'}
+                        </button>
+                    </div>
+                    {aiResponse && (
+                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">AI Analysis Result:</h3>
+                            <div className="prose prose-sm max-w-none text-gray-800 whitespace-pre-wrap">
+                                {aiResponse}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 <div className="bg-white rounded-lg shadow p-6 mb-8">
                     <div className="flex items-center justify-between mb-4">

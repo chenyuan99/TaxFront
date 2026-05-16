@@ -53,7 +53,7 @@ export async function runAccountantAgent(db: Firestore, input: AccountantInput):
       "Aggregate all income, estimate federal tax liability, identify deductions and credits, and provide actionable next steps.";
 
   const { text } = await ai.generate({
-    model: "googleai/gemini-2.0-flash",
+    model: "googleai/gemini-3-flash-preview",
     system: SYSTEM_PROMPT,
     prompt,
     tools: [

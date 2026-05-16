@@ -47,7 +47,7 @@ export async function runAuditorAgent(db: Firestore, input: AuditorInput): Promi
       "Check for data quality issues, IRS audit triggers, income cross-references, and produce a full risk report.";
 
   const { text } = await ai.generate({
-    model: "googleai/gemini-2.0-flash",
+    model: "googleai/gemini-3-flash-preview",
     system: SYSTEM_PROMPT,
     prompt,
     tools: [

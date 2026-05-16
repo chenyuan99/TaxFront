@@ -1,4 +1,5 @@
-import { auth } from '../firebase';
+import { auth, functions } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
 import type { components, operations } from '../api/schema.d.ts';
 
 const FUNCTIONS_BASE_URL = 'https://us-central1-taxfront-1e142.cloudfunctions.net';
@@ -91,4 +92,22 @@ export const api = {
 
     getDocumentStatus: (documentId: string) =>
         callFunction<DocumentStatusResponse>(`/get_document_status?documentId=${encodeURIComponent(documentId)}`),
+
+    runAccountant: async (data: { filingStatus: string; task: string }) => {
+        const callable = httpsCallable(functions, 'runAccountant');
+        const result = await callable({
+            ...data,
+            userId: auth.currentUser?.uid
+        });
+        return result.data as AgentResponse;
+    },
+
+    runAuditor: async (data: { task: string }) => {
+        const callable = httpsCallable(functions, 'runAuditor');
+        const result = await callable({
+            ...data,
+            userId: auth.currentUser?.uid
+        });
+        return result.data as AgentResponse;
+    }
 };
