@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "backend/app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)",          "dest": "backend/app.py" },
+    { "src": "/agents/(.*)",       "dest": "backend/app.py" },
+    { "src": "/health",            "dest": "backend/app.py" },
+    { "src": "/firebase-status",   "dest": "backend/app.py" },
+    { "src": "/debug/(.*)",        "dest": "backend/app.py" },
+    { "src": "/sample/(.*)",       "dest": "backend/app.py" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)",              "dest": "/index.html" }
+  ],
+  "env": {
+    "FLASK_ENV": "production"
+  }
+}

@@ -5,6 +5,7 @@ langchain-google-firestore
 langchain-google-vertexai
 faiss-cpu
 flask
+flask-cors
 ollama
 firebase_admin
 firebase_functions
