@@ -106,9 +106,14 @@ export function Footer() {
                 </div>
 
                 <div className="mt-8 border-t border-gray-200 pt-8">
-                    <p className="text-gray-400 text-sm text-center">
-                        &copy; {currentYear} TaxFront. All rights reserved.
-                    </p>
+                    <div className="flex flex-col items-center space-y-2">
+                        <p className="text-gray-400 text-sm">
+                            &copy; {currentYear} TaxFront. All rights reserved.
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                            v{__APP_VERSION__} | Build: {new Date(__BUILD_TIME__).toLocaleString()}
+                        </p>
+                    </div>
                 </div>
             </div>
         </footer>
