@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Analytics } from "@vercel/analytics/react";
 import { Auth } from './components/Auth.tsx';
 import { Register } from './components/Register.tsx';
 import { Dashboard } from './components/Dashboard.tsx';
@@ -76,7 +75,6 @@ export default function App() {
                 <Chat />
                 <Footer />
                 <CookieBanner />
-                <Analytics />
             </div>
         </BrowserRouter>
     );
