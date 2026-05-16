@@ -43,5 +43,8 @@ jobs:
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/sa.json
           echo "GOOGLE_GENAI_API_KEY=${{ secrets.GOOGLE_GENAI_API_KEY }}" > functions/.env.taxfront-1e142
-          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json npx firebase-tools deploy --project taxfront-1e142 --non-interactive
-          rm /tmp/sa.json functions/.env.taxfront-1e142
+          npm install -g firebase-tools
+          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json firebase deploy --project taxfront-1e142 --non-interactive --debug 2>&1
+          EXIT=$?
+          rm -f /tmp/sa.json functions/.env.taxfront-1e142
+          exit $EXIT
