@@ -39,17 +39,9 @@ jobs:
       - name: Build functions
         run: npm run build --prefix functions
 
-      - name: Deploy hosting to Firebase
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: taxfront-1e142
-          channelId: live
-
-      - name: Deploy functions to Firebase
+      - name: Deploy to Firebase
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/sa.json
           echo "GOOGLE_GENAI_API_KEY=${{ secrets.GOOGLE_GENAI_API_KEY }}" > functions/.env.taxfront-1e142
-          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json npx firebase-tools deploy --only functions --project taxfront-1e142 --non-interactive
+          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json npx firebase-tools deploy --project taxfront-1e142 --non-interactive
           rm /tmp/sa.json functions/.env.taxfront-1e142
