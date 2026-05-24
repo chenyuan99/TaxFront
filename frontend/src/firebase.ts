@@ -4,6 +4,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
+import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,6 +18,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+// In dev, emit a debug token to the console; register it once in
+// Firebase Console → App Check → Apps → <app> → Manage debug tokens.
+if (import.meta.env.DEV) {
+    (self as unknown as Record<string, unknown>).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
+
 initializeAppCheck(app, {
     provider: new ReCaptchaEnterpriseProvider(import.meta.env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY),
     isTokenAutoRefreshEnabled: true,
@@ -26,3 +33,6 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app, 'us-central1');
+
+const ai = getAI(app, { backend: new GoogleAIBackend() });
+export const geminiModel = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
