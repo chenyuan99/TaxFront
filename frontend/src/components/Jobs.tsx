@@ -3,46 +3,6 @@ import { auth } from '../firebase';
 import { Play, RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { jobService, type Job } from '../services/jobService';
 
-const sampleJobs = [
-  {
-    id: 1,
-    title: 'Document Embedding',
-    status: 'Processing',
-    documentCount: 150,
-    type: 'embedding'
-  },
-  {
-    id: 2,
-    title: 'RAG Query Processing',
-    status: 'Completed',
-    query: 'What is the capital of France?',
-    context: 'France is a country in Europe.',
-    response: 'The capital of France is Paris.',
-    type: 'rag'
-  },
-  {
-    id: 3,
-    title: 'Document Embedding',
-    status: 'Pending',
-    documentCount: 300,
-    type: 'embedding'
-  },
-  {
-    id: 4,
-    title: 'Tax Preparer Reviewing',
-    status: 'Reviewing',
-    taxPreparer: 'John Doe',
-    type: 'tax'
-  },
-  {
-    id: 5,
-    title: 'Pending User Signing',
-    status: 'Pending',
-    signatureRequired: true,
-    type: 'signature'
-  }
-];
-
 export function Jobs() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
@@ -90,6 +50,20 @@ export function Jobs() {
         }
     };
 
+    const getStatusBadge = (status: Job['status']) => {
+        const base = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize';
+        switch (status) {
+            case 'pending':
+                return <span className={`${base} bg-gray-100 text-gray-700`}>Pending</span>;
+            case 'processing':
+                return <span className={`${base} bg-blue-100 text-blue-700`}>Processing</span>;
+            case 'completed':
+                return <span className={`${base} bg-green-100 text-green-700`}>Completed</span>;
+            case 'failed':
+                return <span className={`${base} bg-red-100 text-red-700`}>Failed</span>;
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -108,8 +82,8 @@ export function Jobs() {
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="divide-y divide-gray-200">
                         {jobs.map((job) => (
-                            <div 
-                                key={job.id} 
+                            <div
+                                key={job.id}
                                 className="p-6 hover:bg-gray-50 transition-colors"
                             >
                                 <div className="flex items-center justify-between">
@@ -120,17 +94,15 @@ export function Jobs() {
                                                 {job.documentName}
                                             </h3>
                                             <div className="mt-1 flex items-center space-x-2">
-                                                <span className="text-sm text-gray-500">
-                                                    Created: {new Date(job.createdAt).toLocaleString()}
-                                                </span>
+                                                {getStatusBadge(job.status)}
                                                 <span className="text-gray-300">•</span>
-                                                <span className="text-sm text-gray-500">
-                                                    Status: {job.status}
+                                                <span className="text-xs text-gray-500">
+                                                    {new Date(job.createdAt).toLocaleString()}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex items-center space-x-3">
                                         {job.status === 'pending' && (
                                             <button
@@ -158,78 +130,11 @@ export function Jobs() {
                             </div>
                         ))}
 
-                        {sampleJobs.map((job) => (
-                            <div 
-                                key={job.id} 
-                                className="p-6 hover:bg-gray-50 transition-colors"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        {job.status === 'Processing' && (
-                                            <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />
-                                        )}
-                                        {job.status === 'Completed' && (
-                                            <CheckCircle className="h-5 w-5 text-green-500" />
-                                        )}
-                                        {job.status === 'Pending' && (
-                                            <Clock className="h-5 w-5 text-gray-500" />
-                                        )}
-                                        {job.status === 'Reviewing' && (
-                                            <span className="text-sm text-gray-500">Reviewing</span>
-                                        )}
-                                        <div>
-                                            <h3 className="text-sm font-medium text-gray-900">
-                                                {job.title}
-                                            </h3>
-                                            <div className="mt-1 flex items-center space-x-2">
-                                                <span className="text-sm text-gray-500">
-                                                    Status: {job.status}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="flex items-center space-x-3">
-                                        {job.type === 'embedding' && (
-                                            <div>
-                                                <span className="text-sm text-gray-500">
-                                                    Document Count: {job.documentCount}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {job.type === 'rag' && (
-                                            <div>
-                                                <span className="text-sm text-gray-500">
-                                                    Query: {job.query}
-                                                </span>
-                                                <span className="text-gray-300">•</span>
-                                                <span className="text-sm text-gray-500">
-                                                    Response: {job.response}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {job.type === 'tax' && (
-                                            <div>
-                                                <span className="text-sm text-gray-500">
-                                                    Tax Preparer: {job.taxPreparer}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {job.type === 'signature' && (
-                                            <div>
-                                                <span className="text-sm text-gray-500">
-                                                    Signature Required: {job.signatureRequired ? 'Yes' : 'No'}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-
-                        {jobs.length === 0 && sampleJobs.length === 0 && (
-                            <div className="p-6 text-center text-gray-500">
-                                No processing jobs found
+                        {jobs.length === 0 && (
+                            <div className="p-12 text-center">
+                                <Clock className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+                                <p className="text-sm font-medium text-gray-900">No jobs yet</p>
+                                <p className="text-sm text-gray-500 mt-1">Jobs are created automatically when you upload documents.</p>
                             </div>
                         )}
                     </div>
@@ -260,7 +165,7 @@ export function Jobs() {
                                     <h3 className="text-sm font-medium text-gray-500">Status</h3>
                                     <div className="mt-1 flex items-center space-x-2">
                                         {getStatusIcon(selectedJob.status)}
-                                        <span>{selectedJob.status}</span>
+                                        {getStatusBadge(selectedJob.status)}
                                     </div>
                                 </div>
 
