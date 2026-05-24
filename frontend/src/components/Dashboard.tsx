@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage, auth } from '../firebase';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Upload, RefreshCcw } from 'lucide-react';
 import { Chat } from './Chat';
@@ -38,14 +38,16 @@ export function Dashboard() {
     const [selectedDocToArchive, setSelectedDocToArchive] = useState<TaxDocument | null>(null);
     const [aiResponse, setAiResponse] = useState<string | null>(null);
     const [isAiLoading, setIsAiLoading] = useState(false);
+    const [filingStatus, setFilingStatus] = useState<string>('single');
+    const [filingStatusMissing, setFilingStatusMissing] = useState(false);
 
     // Utility Functions
     const handleRunAi = async (type: 'accountant' | 'auditor') => {
         setIsAiLoading(true);
         setAiResponse(null);
         try {
-            const result = type === 'accountant' 
-                ? await api.runAccountant({ filingStatus: 'single', task: 'Review my tax situation' })
+            const result = type === 'accountant'
+                ? await api.runAccountant({ filingStatus, task: 'Review my tax situation' })
                 : await api.runAuditor({ task: 'Perform a risk assessment' });
             setAiResponse(result.output);
         } catch (error) {
@@ -73,12 +75,21 @@ export function Dashboard() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [docsResponse, summaryResponse] = await Promise.all([
+            const user = auth.currentUser;
+            const [docsResponse, summaryResponse, profileSnap] = await Promise.all([
                 api.getTaxDocuments(),
-                api.getTaxSummary()
+                api.getTaxSummary(),
+                user ? getDoc(doc(db, 'userProfiles', user.uid)) : Promise.resolve(null),
             ]);
             setDocuments(docsResponse.documents);
             setSummary(summaryResponse);
+            const profileFilingStatus = profileSnap?.exists() ? profileSnap.data()?.filingStatus : undefined;
+            if (profileFilingStatus) {
+                setFilingStatus(profileFilingStatus);
+                setFilingStatusMissing(false);
+            } else {
+                setFilingStatusMissing(true);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -346,6 +357,11 @@ export function Dashboard() {
 
                 <div className="bg-white rounded-lg shadow p-6 mb-8">
                     <h2 className="text-lg font-medium mb-4">AI Tax Analysis</h2>
+                    {filingStatusMissing && (
+                        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md flex items-center justify-between text-sm text-yellow-800">
+                            <span>Filing status not set — defaulting to Single. <a href="/profile" className="underline font-medium">Complete your profile</a> for accurate analysis.</span>
+                        </div>
+                    )}
                     <div className="flex space-x-4 mb-6">
                         <button
                             onClick={() => handleRunAi('accountant')}
