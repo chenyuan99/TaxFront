@@ -50,6 +50,13 @@
   ],
   "navigation": [
     {
+      "group": "Guides",
+      "pages": [
+        "guides/ragie-tax-assistant",
+        "guides/tax-filing-skill"
+      ]
+    },
+    {
       "group": "留学生报税",
       "pages": [
         "留学生报税/form-8843"
