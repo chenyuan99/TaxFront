@@ -1,3 +1,5 @@
+
+
 # TaxFront
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/chenyuan99/TaxFront/frontend.yml)](https://github.com/chenyuan99/TaxFront/actions)
@@ -170,6 +172,8 @@ npm install
 npm run build
 npm run serve
 ```
+
+`npm run serve` runs the build and starts the Firebase Functions emulator.
 
 Deploy:
 
