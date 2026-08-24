@@ -1,4 +1,4 @@
-﻿name: Upgrade Documentation Dependencies
+name: Upgrade Documentation Dependencies
 
 on:
   schedule:
@@ -83,11 +83,18 @@ jobs:
         run: |
           npm install -D mintlify@latest
 
+      # Only the scheduled and manual runs should open an upgrade PR. On
+      # pull_request and push events the checkout is a detached HEAD, which
+      # create-pull-request rejects without an explicit `base`; opening a PR
+      # as a side effect of someone else's docs edit is also not the intent.
       - name: Create Pull Request
-        if: steps.check_updates.outputs.updates_available == 'true'
+        if: >-
+          steps.check_updates.outputs.updates_available == 'true' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
           commit-message: 'chore: upgrade Mintlify CLI to ${{ steps.check_updates.outputs.latest_version }}'
           title: 'chore: upgrade documentation dependencies'
           body: |

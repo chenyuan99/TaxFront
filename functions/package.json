@@ -3,7 +3,9 @@
   "scripts": {
     "build": "tsc && node -e \"require('fs').cpSync('prompts', 'lib/prompts', {recursive:true})\"",
     "serve": "npm run build && firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions"
+    "deploy": "firebase deploy --only functions",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "engines": {
     "node": "22"
@@ -18,7 +20,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.11"
   },
   "private": true
 }

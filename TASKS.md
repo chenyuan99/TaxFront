@@ -14,25 +14,43 @@
 - Add `api.runFullAnalysis()` to `frontend/src/services/api.ts`
 - Add a single "Analyze My Taxes" button to `Dashboard.tsx` that calls it and renders both sections
 
+### Decide the fate of the Python `backend/`
+`firebase.json` deploys only `functions/` (TypeScript). The frontend talks exclusively to Firebase callables — nothing in `frontend/src` references `VITE_API_URL`, the variable the Flask service is exposed under in `docker-compose.yml`. `backend/app.py` does not import `task_manager`, `tax_forms`, or `form_filler` either.
+
+So these are unreachable from the running app: `backend/queue/`, `backend/embedding/`, `backend/src/*rag_pipeline.py`, `backend/tax_forms/`, `backend/parser/`, `backend/agents/`.
+
+**Decision needed:** delete them, or keep them and mark them clearly as superseded. Right now they read as live architecture and have already caused at least one round of misdirected planning. If tax form filling gets rebuilt, do it in the TS stack with `pdf-lib` rather than reviving `form_filler.py`'s browser automation.
+
+### Externalize audit thresholds
+`check_audit_triggers` hardcodes its rule constants: `> $1M` / `> $500K` income tiers, `0.9` / `0.75` Schedule C expense ratios, `0.2` charitable-to-income ratio, `$1,500` Schedule B floor. They are invisible to the agent except through the tool's prose description, and a CPA cannot review or adjust them without a code change.
+
+Candidate approaches: plain exported constants in `src/semantic/`, an Apache Ossie YAML semantic model (`ai_context` would also ground the agents), or Rego policies evaluated via `@open-policy-agent/opa-wasm`.
+
+The OPA option is written up in `docs/open-policy-agent.md` — evaluated and deliberately not adopted, with the two conditions that would change the answer (rules branching by tax year / state / filing status, or a CPA rather than an engineer owning them).
+
+## Done
+
+### Test suite for `functions/`
+Vitest, in `functions/test/`. `npm test` / `npm run test:watch`. 57 tests, offline — the Genkit tools are invoked directly and their implementations never reach the model, so a dummy key in `vitest.config.mts` is enough.
+
+- `taxFields.test.ts` — the semantic layer: money parsing, alias resolution, document classification, income aggregation.
+- `tools.test.ts` — the tools themselves, including the cross-tool agreement invariant (accountant and auditor must report the same total income) and a named regression case for each bug listed below.
+
+Verified by mutation: reintroducing the two original bugs in `taxFields.ts` fails 22 of the 57 tests.
+
+### Unify tax semantics across the accountant and auditor tools
+`accountantTools.ts` and `auditTools.ts` each carried their own field-alias chains, document-type matching, and income totals, and they disagreed.
+
+Both now read from `functions/src/semantic/taxFields.ts`. See "Semantic layer" in `CLAUDE.md`.
+
+Fixed along the way:
+- `auditTools` parsed money with bare `parseFloat`, so `"$120,000.00"` became `0` and `"1,234.56"` became `1`. Now uses the shared `safeFloat`.
+- `check_audit_triggers` read income as `income ?? gross_wages ?? total_income`, but the extractor writes `wages` for a W-2 — the high-income triggers never fired on a W-2. Now resolves per document category.
+- `cross_reference_income` omitted interest, dividends, and Schedule C income from `totalDocumentedIncome`. On a mixed seven-document set the accountant reported $196,000 and the auditor $65,000; both now report $196,000.
+- The auditor's `1099-INT` / `1099-DIV` matching did not strip separators, so `"1099 INT"` was silently skipped.
+
 ### Document parsing pipeline (Cloud Functions)
-The old Python `parser.py` handled PDF OCR and data extraction. The current `processNewTaxDocument` trigger (`functions/src/index.ts`) only stamps a timestamp and sets `status: "processed"` — it does not extract any data. Until this is rebuilt, `extractedData` is always empty and agents cannot do real analysis.
-
-**Approach:** Replace the stub with a real extraction pipeline in TypeScript Cloud Functions.
-
-**Implementation notes:**
-- Use the Google Cloud Document AI API (`@google-cloud/documentai`) or the Gemini file API (`ai.generate` with inline PDF) to extract structured fields from uploaded PDFs
-- Map extracted fields to the schema expected by `build_tax_summary` and `check_audit_triggers`:
-  - W-2: `wages`, `federal_tax_withheld`, `state_tax_withheld`, `social_security_tax_withheld`, `medicare_tax_withheld`, `employer_ein`
-  - 1099-NEC: `nonemployee_compensation`
-  - 1099-INT: `interest_income`
-  - 1099-DIV: `total_dividends`, `ordinary_dividends`
-  - 1098: `mortgage_interest`
-- Write extracted fields to `taxDocuments/{id}.extractedData` in Firestore
-- Set `status: "processed"` on success, `status: "error"` with `errorMessage` on failure
-- The document is already in Firebase Storage when the trigger fires — fetch it via the Admin SDK (`getStorage().bucket().file(data.storagePath).download()`)
-- Consider a `documentType` auto-detection step before extraction (infer from filename or first-pass OCR)
-
-**Testing without the pipeline:** Manually write `extractedData` directly to a Firestore document to test agents end-to-end.
+Shipped as `functions/src/flows/extractor.ts` — downloads the file, sends it inline to `gemini-2.5-flash`, and writes structured fields to `taxDocuments/{id}.extractedData`, with `status: "error"` and `errorMessage` on failure. The prompt in that file is the authoritative list of extracted field names per form type.
 
 ### Wire filing status from user profile
-Currently hardcoded as `'single'` in `Dashboard.tsx` line 48. Should be pulled from the authenticated user's Firestore profile instead.
+`Dashboard.tsx` reads `filingStatus` from the user's Firestore profile and surfaces a `filingStatusMissing` prompt when it is absent. The `useState('single')` on line 41 is only an initial value.
