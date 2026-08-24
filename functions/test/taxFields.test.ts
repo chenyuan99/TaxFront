@@ -34,6 +34,13 @@ describe("safeFloat", () => {
     expect(safeFloat("not a number")).toBe(0);
     expect(safeFloat(NaN)).toBe(0);
   });
+
+  // The extractor's output is model-generated JSON, so a nested object where a
+  // scalar was expected is possible. It must not stringify to "[object Object]".
+  it("treats non-scalar values as zero rather than stringifying them", () => {
+    expect(safeFloat({ value: 100 })).toBe(0);
+    expect(safeFloat([100])).toBe(0);
+  });
 });
 
 describe("pickAmount", () => {
@@ -59,6 +66,10 @@ describe("pickString", () => {
 
   it("returns an empty string when absent", () => {
     expect(pickString({}, FIELD_ALIASES.employerEin)).toBe("");
+  });
+
+  it("returns an empty string for a non-scalar value", () => {
+    expect(pickString({ employer_ein: { nested: true } }, FIELD_ALIASES.employerEin)).toBe("");
   });
 });
 
@@ -207,6 +218,12 @@ describe("collectIncome", () => {
     expect(agg.documentsByCategory.W2).toHaveLength(2);
     expect(agg.documentsByCategory.SELF_EMPLOYMENT).toHaveLength(2);
     expect(agg.documentsByCategory.INTEREST).toHaveLength(1);
+  });
+
+  it("falls back to 'unknown' rather than stringifying a non-scalar id or name", () => {
+    const agg = collectIncome([{ id: { nested: true }, name: ["a"], documentType: "W-2", extractedData: { wages: 100 } }]);
+    expect(agg.sources[0].documentId).toBe("unknown");
+    expect(agg.sources[0].documentName).toBe("unknown");
   });
 
   it("returns a zeroed aggregate for no documents", () => {

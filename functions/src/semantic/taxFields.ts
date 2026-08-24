@@ -10,12 +10,24 @@
  * documents may still carry.
  */
 
+/**
+ * Coerce a primitive to text. Objects and arrays yield "" rather than
+ * "[object Object]" — extracted data comes from a model's JSON, so a nested
+ * object in a scalar field is possible and must not become a garbage value.
+ */
+export function asText(val: unknown): string {
+  if (typeof val === "string") return val;
+  if (typeof val === "number" || typeof val === "boolean") return String(val);
+  return "";
+}
+
 /** Parse a monetary value that may arrive as a number, "1,234.56", or "$1,234.56". */
 export function safeFloat(val: unknown): number {
-  if (val == null) return 0;
-  if (typeof val === "number") return isNaN(val) ? 0 : val;
-  const n = parseFloat(String(val).replace(/,|\$/g, "").trim());
-  return isNaN(n) ? 0 : n;
+  if (typeof val === "number") return Number.isNaN(val) ? 0 : val;
+  const text = asText(val);
+  if (!text) return 0;
+  const n = Number.parseFloat(text.replace(/[,$]/g, "").trim());
+  return Number.isNaN(n) ? 0 : n;
 }
 
 /** First alias present on the record wins; absent or unparseable yields 0. */
@@ -29,7 +41,7 @@ export function pickAmount(ext: Record<string, unknown>, aliases: readonly strin
 /** First alias present on the record, as a trimmed string; "" when absent. */
 export function pickString(ext: Record<string, unknown>, aliases: readonly string[]): string {
   for (const alias of aliases) {
-    if (ext[alias] != null) return String(ext[alias]).trim();
+    if (ext[alias] != null) return asText(ext[alias]).trim();
   }
   return "";
 }
@@ -63,7 +75,7 @@ export const FIELD_ALIASES = {
 
 /** Uppercase and strip separators so "1099-INT", "1099 int" and "1099int" all match. */
 export function normalizeDocType(documentType: unknown): string {
-  return String(documentType ?? "").toUpperCase().replace(/[-\s_]/g, "");
+  return asText(documentType).toUpperCase().replace(/[-\s_]/g, "");
 }
 
 export function classifyDocument(documentType: unknown): DocCategory {
@@ -147,9 +159,9 @@ export function collectIncome(docs: Record<string, unknown>[]): IncomeAggregate 
   for (const doc of docs) {
     const ext = extractedFieldsOf(doc);
     const category = classifyDocument(doc.documentType);
-    const documentId = String(doc.id ?? "unknown");
-    const documentName = String(doc.name ?? doc.id ?? "unknown");
-    const documentType = String(doc.documentType ?? "unknown");
+    const documentId = asText(doc.id) || "unknown";
+    const documentName = asText(doc.name) || asText(doc.id) || "unknown";
+    const documentType = asText(doc.documentType) || "unknown";
 
     agg.documentsByCategory[category].push(doc);
 

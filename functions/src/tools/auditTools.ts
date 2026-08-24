@@ -2,6 +2,7 @@ import { z } from "genkit";
 import { getAI } from "../ai";
 import {
   FIELD_ALIASES,
+  asText,
   classifyDocument,
   collectIncome,
   documentIncome,
@@ -115,7 +116,7 @@ function buildAuditTools() {
       const einsSeenMap: Record<string, string> = {};
       for (const doc of agg.documentsByCategory.W2) {
         const ein = pickString(extractedFieldsOf(doc), FIELD_ALIASES.employerEin);
-        const docId = String(doc.id ?? "unknown");
+        const docId = asText(doc.id) || "unknown";
         if (!ein) continue;
         if (einsSeenMap[ein]) {
           findings.push({ type: "DUPLICATE_EIN", severity: "HIGH", message: `Employer EIN ${ein} appears on multiple W-2s (IDs: ${einsSeenMap[ein]}, ${docId}). May be a duplicate upload or two part-year jobs.`, documentIds: [einsSeenMap[ein], docId] });
