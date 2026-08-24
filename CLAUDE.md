@@ -47,7 +47,7 @@ The stack is entirely TypeScript and Firebase. A Python Flask backend (`backend/
 - **State management**: React hooks with Firebase hooks (`react-firebase-hooks`)
 
 ### Cloud Functions (`/functions`)
-- **Built with**: TypeScript, Genkit, `@genkit-ai/googleai`, Firebase Admin SDK
+- **Built with**: TypeScript, Genkit, `@genkit-ai/google-genai`, Firebase Admin SDK
 - **Entry point**: `src/index.ts` — all callables and triggers
   - `runAccountant` / `runAuditor` - agent entry points
   - `getTaxDocuments` / `getTaxSummary` / `createUserProfile`
@@ -127,10 +127,13 @@ Not currently implemented. A previous Python implementation used Chromium automa
 ## Key Dependencies & Versions
 
 - **Frontend**: React 18.3, Vite 6.4, TailwindCSS 3.4, TypeScript 5.7
-- **Cloud Functions**: Node 22, TypeScript 5.6, Genkit 1.34, `@genkit-ai/googleai` 1.28, firebase-admin 13
+- **Cloud Functions**: Node 22, TypeScript 5.6, Genkit 1.41, `@genkit-ai/google-genai` 1.41, firebase-admin 13
 
 ## AI Model Standards
 - **Mandatory Model**: AI agents (Accountant and Auditor) MUST use `googleai/gemini-2.5-flash`.
 - **Tool Calling**: Agents must be configured with `maxTurns: 5` in `ai.generate()` to ensure multi-turn tool calling completes automatically.
-- **Why not gemini-3-flash-preview**: Gemini 3 requires mandatory `thoughtSignature` fields on every function call part in multi-turn history. The current `@genkit-ai/googleai` SDK (v1.28.0) drops these signatures in `fromFunctionCall`, causing 400 errors during tool-calling loops. Revisit when Genkit ships the fix.
-- **Why gemini-2.5-flash**: Thought signatures are optional (not mandatory) for Gemini 2.5 function calls, so Genkit's current implementation works correctly. It is a newer and more capable model than what was originally used.
+- **Plugin**: Use `@genkit-ai/google-genai`. The old `@genkit-ai/googleai` is deprecated by npm ("Use @genkit-ai/google-genai package instead") and was last published 2026-03-26. Model reference strings are unchanged — `googleAI.model('gemini-2.5-flash')` still resolves to `googleai/gemini-2.5-flash`.
+- **Why gemini-2.5-flash**: Thought signatures are optional (not mandatory) for Gemini 2.5 function calls, so tool calling works correctly.
+- **gemini-3 status — the SDK blocker is resolved, but not yet enabled here.** Gemini 3 requires a `thoughtSignature` on every function call part in multi-turn history. The old plugin's `fromFunctionCall` returned `{ toolRequest: { name, input, ref } }` and dropped the signature, causing 400 errors mid tool-calling loop. `@genkit-ai/google-genai` round-trips it: `fromGeminiToolCall` stashes it via `maybeAddThoughtSignatureAndMetadata` into `part.metadata.thoughtSignature`, and `toGeminiToolRequest` reattaches it via `maybeAddGeminiThoughtSignatureAndMetadata`. The old plugin also knows no gemini-3 model names at all; the new one ships ten.
+
+  This was verified by reading the published sources, **not** by a live run. Before switching the mandate to gemini-3, exercise a real multi-turn tool-calling loop against the API and confirm no 400s — the offline suite never reaches the model, so it cannot catch this.

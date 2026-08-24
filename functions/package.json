@@ -12,7 +12,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@genkit-ai/googleai": "^1.28.0",
+    "@genkit-ai/google-genai": "^1.41.0",
     "@google-cloud/recaptcha-enterprise": "^4.0.0",
     "firebase-admin": "^13.0.0",
     "firebase-functions": "^6.3.2",
