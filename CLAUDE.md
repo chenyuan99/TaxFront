@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 TaxFront is a tax document management platform: a React frontend talking to Firebase (Auth, Firestore, Storage) and TypeScript Cloud Functions. It features user authentication, document management, Gemini-based document extraction, and AI agents for tax and audit tasks.
 
-**The Python `backend/` is superseded and unreachable from the running app.** `firebase.json` deploys only `functions/`; the frontend calls Firebase callables and never references `VITE_API_URL`, the variable the Flask service is exposed under in `docker-compose.yml`. Treat `backend/queue/`, `backend/embedding/`, `backend/src/`, `backend/tax_forms/`, `backend/parser/`, and `backend/agents/` as dead code — do not plan work around them without checking `TASKS.md` first.
+The stack is entirely TypeScript and Firebase. A Python Flask backend (`backend/`) existed previously but was superseded by the Cloud Functions and removed; if you find references to it in older docs or issues, they are stale.
 
 ## Common Commands
 
@@ -25,10 +25,8 @@ TaxFront is a tax document management platform: a React frontend talking to Fire
 - **Deploy**: `cd functions && npm run deploy`
 - **Run tests**: `cd functions && npm test` or `npm run test:watch` for watch mode
 
-### Legacy Python backend (`/backend`) — not deployed
-Commands kept for archaeology only; nothing here runs in production.
-- **Run Flask app**: `cd backend && python app.py`
-- **Run backend tests**: `cd backend && python -m pytest`
+### Docker (frontend only)
+- **Build and run**: `docker-compose up --build` (serves the built frontend via Nginx on port 80)
 
 ## Project Structure
 
@@ -90,12 +88,12 @@ Before adding a field lookup or an income total to any tool, check whether it be
 ### Document Flow
 1. User uploads document via `DocumentUpload.tsx`
 2. Document stored in Firebase Storage
-3. Cloud Functions trigger parsing via `parser.py`
+3. The `processNewTaxDocument` trigger runs extraction via `flows/extractor.ts`
 4. Metadata and status tracked in Firestore
 5. Agents can process documents for tax/audit purposes
 
 ### Tax Form Automation
-Not currently implemented. The Python `form_filler.py` (Chromium automation with manual field positioning) is dead code; if this is rebuilt, do it in the TS stack with `pdf-lib` AcroForm filling. See `TASKS.md`.
+Not currently implemented. A previous Python implementation used Chromium automation with manual field positioning; if this is rebuilt, do it in the TS stack with `pdf-lib` AcroForm filling. See `TASKS.md`.
 
 ## Testing Strategy
 
@@ -124,7 +122,7 @@ Not currently implemented. The Python `form_filler.py` (Chromium automation with
 
 - **Frontend**: Firebase Hosting, deployed via GitHub Actions
 - **Cloud Functions**: `firebase deploy --only functions`
-- **Docker**: `docker-compose.yml` still builds the legacy Flask service; it is not part of the deployed system.
+- **Docker**: `docker-compose.yml` builds the frontend only. Cloud Functions are deployed with the Firebase CLI, not containerized.
 
 ## Key Dependencies & Versions
 
