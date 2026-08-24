@@ -522,7 +522,9 @@ paths:
     get:
       operationId: getSampleFile
       summary: Serve sample file (dev only)
-      description: Returns a static sample file from the backend/sample directory.
+      description: >-
+        Returns a static sample file from the repository `sample/` directory.
+        Not currently implemented — this was served by the removed Flask dev server.
       tags: [Dev]
       security: []
       parameters:
