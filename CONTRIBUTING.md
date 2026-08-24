@@ -50,14 +50,23 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 To set up the development environment, follow these steps:
 
-1. **Install Dependencies**: Install the required dependencies using `pip`.
+The project is TypeScript throughout: a React frontend and Firebase Cloud Functions.
+
+1. **Install Dependencies**: Install dependencies in each workspace you are changing.
     ```bash
-    pip install -r requirements.txt
+    cd frontend && npm install
+    cd ../functions && npm install
     ```
 
 2. **Run Tests**: Ensure all tests pass before submitting your pull request.
     ```bash
-    pytest
+    cd frontend && npm test
+    cd ../functions && npm test
+    ```
+
+3. **Typecheck Cloud Functions**: 
+    ```bash
+    cd functions && npx tsc --noEmit
     ```
 
 ## Contact
