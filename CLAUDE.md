@@ -85,7 +85,9 @@ Background work runs in a Firestore trigger with no HTTP response to return to, 
 - The frontend is a **reader only** on both collections — `jobService` and `notificationService` hold `onSnapshot` listeners and mark notifications read. Never add client-side job status mutation: a tab writing its own view of job state races the trigger doing the work.
 - `extractTaxDocument` returns an `ExtractionResult` rather than throwing. It still writes `status` onto the document record; the return value exists so the trigger knows which notification to send.
 
-Both queries filter by `userId` and order by `createdAt`, so each collection needs a composite index on (`userId` asc, `createdAt` desc). Security rules must let a user read their own `jobs` and `notifications` rows, update only the `read` field on their notifications, and own `users/{uid}/fcmTokens/*`; job writes belong to the backend.
+Both queries filter by `userId` and order by `createdAt`, so each collection needs a composite index on (`userId` asc, `createdAt` desc). These live in `firestore.indexes.json` and ship with `firebase deploy --only firestore:indexes` — without them the listener fails at runtime with `The query requires an index`, not at build time.
+
+Security rules must let a user read their own `jobs` and `notifications` rows, update only the `read` field on their notifications, and own `users/{uid}/fcmTokens/*`; job writes belong to the backend. There is no `firestore.rules` in this repo, so `firebase.json` deliberately declares only `firestore.indexes` — adding a `rules` pointer would deploy an empty ruleset over whatever is live.
 
 **Web push (FCM).** The bell only reaches tabs that are open, so `pushNewNotification` fires off the notification row and pushes to the user's devices.
 
