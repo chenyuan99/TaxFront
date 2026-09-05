@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { auth } from '../firebase';
-import { User, LogOut, LayoutDashboard, Briefcase, Bug, Menu, X, Bell } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, Briefcase, Bug, Menu, X } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -110,13 +111,7 @@ export function Navbar() {
 
                     {/* Right side menu */}
                     <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-                        <button
-                            type="button"
-                            className="p-1 rounded-full text-gray-400 hover:text-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                        >
-                            <span className="sr-only">View notifications</span>
-                            <Bell className="h-6 w-6" />
-                        </button>
+                        <NotificationBell />
 
                         {/* Profile dropdown */}
                         <div className="relative" ref={dropdownRef}>
@@ -172,7 +167,8 @@ export function Navbar() {
                     </div>
 
                     {/* Mobile menu button */}
-                    <div className="flex items-center sm:hidden">
+                    <div className="flex items-center space-x-2 sm:hidden">
+                        <NotificationBell />
                         <button
                             onClick={() => setIsOpen(!isOpen)}
                             className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-dark hover:bg-light-bg focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"

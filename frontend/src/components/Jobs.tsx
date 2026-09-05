@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
-import { Play, RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { jobService, type Job } from '../services/jobService';
 
 export function Jobs() {
@@ -9,33 +9,36 @@ export function Jobs() {
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
     useEffect(() => {
-        const user = auth.currentUser;
-        if (!user) return;
+        let unsubscribeJobs: (() => void) | undefined;
 
-        const unsubscribe = jobService.subscribeToUserJobs(
-            user.uid,
-            (jobsList) => {
-                setJobs(jobsList);
+        const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+            unsubscribeJobs?.();
+            unsubscribeJobs = undefined;
+
+            if (!user) {
+                setJobs([]);
                 setLoading(false);
-            },
-            (error) => {
-                console.error('Error fetching jobs:', error);
-                setLoading(false);
+                return;
             }
-        );
 
-        return () => unsubscribe();
+            unsubscribeJobs = jobService.subscribeToUserJobs(
+                user.uid,
+                (jobsList) => {
+                    setJobs(jobsList);
+                    setLoading(false);
+                },
+                (error) => {
+                    console.error('Error fetching jobs:', error);
+                    setLoading(false);
+                }
+            );
+        });
+
+        return () => {
+            unsubscribeJobs?.();
+            unsubscribeAuth();
+        };
     }, []);
-
-    const handleProcessJob = async (job: Job) => {
-        if (job.status === 'processing') return;
-
-        try {
-            await jobService.processJob(job.id);
-        } catch (error) {
-            console.error('Error processing job:', error);
-        }
-    };
 
     const getStatusIcon = (status: Job['status']) => {
         switch (status) {
@@ -104,15 +107,6 @@ export function Jobs() {
                                     </div>
 
                                     <div className="flex items-center space-x-3">
-                                        {job.status === 'pending' && (
-                                            <button
-                                                onClick={() => handleProcessJob(job)}
-                                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                            >
-                                                <Play className="h-4 w-4 mr-2" />
-                                                Process
-                                            </button>
-                                        )}
                                         <button
                                             onClick={() => setSelectedJob(job)}
                                             className="text-sm text-indigo-600 hover:text-indigo-900"
@@ -134,7 +128,7 @@ export function Jobs() {
                             <div className="p-12 text-center">
                                 <Clock className="mx-auto h-10 w-10 text-gray-300 mb-3" />
                                 <p className="text-sm font-medium text-gray-900">No jobs yet</p>
-                                <p className="text-sm text-gray-500 mt-1">Jobs are created automatically when you upload documents.</p>
+                                <p className="text-sm text-gray-500 mt-1">Upload a document and processing starts automatically — you'll be notified here when it finishes.</p>
                             </div>
                         )}
                     </div>
@@ -192,10 +186,15 @@ export function Jobs() {
 
                                 {selectedJob.result && (
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-500">Result</h3>
-                                        <pre className="mt-1 bg-gray-50 p-4 rounded-md overflow-auto">
-                                            {JSON.stringify(selectedJob.result, null, 2)}
-                                        </pre>
+                                        <h3 className="text-sm font-medium text-gray-500">Extraction Result</h3>
+                                        <dl className="mt-1 bg-gray-50 p-4 rounded-md grid grid-cols-2 gap-y-2 text-sm">
+                                            <dt className="text-gray-500">Document type</dt>
+                                            <dd>{selectedJob.result.documentType ?? 'unknown'}</dd>
+                                            <dt className="text-gray-500">Tax year</dt>
+                                            <dd>{selectedJob.result.taxYear ?? '—'}</dd>
+                                            <dt className="text-gray-500">Fields extracted</dt>
+                                            <dd>{selectedJob.result.fieldsExtracted ?? 0}</dd>
+                                        </dl>
                                     </div>
                                 )}
                             </div>

@@ -150,6 +150,8 @@ npm run lint
 
 Frontend environment variables use the `VITE_FIREBASE_*` prefix. See `frontend/.env.example`.
 
+Browser notifications for finished processing jobs need `VITE_FIREBASE_VAPID_KEY` — the Web Push certificate key pair from Firebase Console → Project Settings → Cloud Messaging. Leave it unset and the app builds and runs normally; the in-app notification bell still works, only the browser-level push opt-in is hidden.
+
 ### Cloud Functions
 
 ```bash

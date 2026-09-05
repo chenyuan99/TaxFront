@@ -51,10 +51,13 @@ The stack is entirely TypeScript and Firebase. A Python Flask backend (`backend/
 - **Entry point**: `src/index.ts` — all callables and triggers
   - `runAccountant` / `runAuditor` - agent entry points
   - `getTaxDocuments` / `getTaxSummary` / `createUserProfile`
-  - `processNewTaxDocument` - Firestore `onDocumentCreated` trigger
+  - `processNewTaxDocument` - Firestore `onDocumentCreated` trigger on `taxDocuments`
+  - `pushNewNotification` - Firestore `onDocumentCreated` trigger on `notifications`, fans out web push
 - **`src/flows/`** - agent and pipeline definitions
   - `extractor.ts` - Gemini document extraction. Its `EXTRACTION_PROMPT` is the authoritative list of extracted field names per form type.
   - `accountant.ts` / `auditor.ts` - agent flows
+- **`src/jobs.ts`** - backend-owned job records and the notifications they emit (see below)
+- **`src/push.ts`** - FCM delivery for those notifications, with dead-token pruning
 - **`src/tools/`** - Genkit tool definitions the agents call
   - `accountantTools.ts` - `build_tax_summary`, `suggest_deductions`
   - `auditTools.ts` - `check_audit_triggers`, `cross_reference_income`, `calculate_audit_risk_score`
@@ -73,6 +76,25 @@ Before adding a field lookup or an income total to any tool, check whether it be
 - `FIELD_ALIASES` - canonical alias chains, most specific name first.
 - `collectIncome` - the authoritative aggregate. `totalIncome` is the one income figure; do not re-derive it.
 - `documentIncome` - per-document income for single-document audit checks.
+
+### Job notifications (`functions/src/jobs.ts` → `frontend/src/services/notificationService.ts`)
+Background work runs in a Firestore trigger with no HTTP response to return to, so the job record is the channel back to the browser.
+
+- `processNewTaxDocument` opens a job (`jobs/{jobId}`, keyed by document id so a retried invocation reuses it), advances it to `processing`, then closes it as `completed` or `failed`.
+- The terminal write is a transaction: the job update and a `notifications/{id}` row land together, so the frontend can never see a finished job without its notification. `finishJob` is a no-op on an already-terminal job, so a redelivered trigger cannot notify twice.
+- The frontend is a **reader only** on both collections — `jobService` and `notificationService` hold `onSnapshot` listeners and mark notifications read. Never add client-side job status mutation: a tab writing its own view of job state races the trigger doing the work.
+- `extractTaxDocument` returns an `ExtractionResult` rather than throwing. It still writes `status` onto the document record; the return value exists so the trigger knows which notification to send.
+
+Both queries filter by `userId` and order by `createdAt`, so each collection needs a composite index on (`userId` asc, `createdAt` desc). Security rules must let a user read their own `jobs` and `notifications` rows, update only the `read` field on their notifications, and own `users/{uid}/fcmTokens/*`; job writes belong to the backend.
+
+**Web push (FCM).** The bell only reaches tabs that are open, so `pushNewNotification` fires off the notification row and pushes to the user's devices.
+
+- Push hangs off `notifications`, not off the job, so anything that writes a notification gets push for free and a failed send retries without re-running extraction.
+- Messages are **data-only**. A `notification` payload would be rendered by the browser on top of what `frontend/public/firebase-messaging-sw.js` shows, and would take click handling away from us. Do not add one.
+- `sendPushToUser` never throws — push is best-effort and must not fail the job behind it. It prunes tokens FCM reports as permanently dead.
+- Registration tokens live at `users/{uid}/fcmTokens/{token}`, written by `frontend/src/services/pushService.ts`. Tokens rotate, so `refreshPushToken()` re-registers on every load for an already-opted-in user.
+- The service worker cannot read `import.meta.env`, so `pushService` registers it by hand with the Firebase config on its query string, at FCM's own `/firebase-cloud-messaging-push-scope` — deliberately narrower than the app-shell worker at `/` so the two coexist.
+- Requires `VITE_FIREBASE_VAPID_KEY` (Firebase Console → Project Settings → Cloud Messaging → Web Push certificates). Unset, `getPushPermission()` reports `unconfigured`, the opt-in is hidden, and the in-app bell still works.
 
 ## Architecture Notes
 

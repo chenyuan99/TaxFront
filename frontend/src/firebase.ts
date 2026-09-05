@@ -16,7 +16,9 @@ const firebaseConfig = {
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-const app = initializeApp(firebaseConfig);
+// Exported so `pushService` can read the resolved config back out when it
+// hands the messaging service worker its parameters.
+export const app = initializeApp(firebaseConfig);
 
 // In dev, emit a debug token to the console; register it once in
 // Firebase Console → App Check → Apps → <app> → Manage debug tokens.
