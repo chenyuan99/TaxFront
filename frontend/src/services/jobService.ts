@@ -30,7 +30,7 @@ export type Job = {
 };
 
 class JobService {
-    private jobsCollection = collection(db, 'jobs');
+    private readonly jobsCollection = collection(db, 'jobs');
 
     async getJob(jobId: string): Promise<Job | null> {
         const jobDoc = await getDoc(doc(this.jobsCollection, jobId));
