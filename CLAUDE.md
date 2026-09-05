@@ -87,6 +87,8 @@ Background work runs in a Firestore trigger with no HTTP response to return to, 
 
 Both queries filter by `userId` and order by `createdAt`, so each collection needs a composite index on (`userId` asc, `createdAt` desc). These live in `firestore.indexes.json` and ship with `firebase deploy --only firestore:indexes` — without them the listener fails at runtime with `The query requires an index`, not at build time.
 
+`firestore.indexes.json` must stay a **complete** picture of the project's indexes, not just the ones a given change adds. A deploy reconciles the file against what is live, so an index that exists on the project but is missing from the file is offered for deletion — and deleting the `taxDocuments` one silently breaks `getTaxDocuments` and `getTaxSummary`. Before editing it, dump the current state with `firebase firestore:indexes` and add to that.
+
 Security rules must let a user read their own `jobs` and `notifications` rows, update only the `read` field on their notifications, and own `users/{uid}/fcmTokens/*`; job writes belong to the backend. There is no `firestore.rules` in this repo, so `firebase.json` deliberately declares only `firestore.indexes` — adding a `rules` pointer would deploy an empty ruleset over whatever is live.
 
 **Web push (FCM).** The bell only reaches tabs that are open, so `pushNewNotification` fires off the notification row and pushes to the user's devices.
