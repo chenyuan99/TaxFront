@@ -36,7 +36,7 @@ export type AppNotification = {
 const FEED_LIMIT = 50;
 
 class NotificationService {
-    private notificationsCollection = collection(db, 'notifications');
+    private readonly notificationsCollection = collection(db, 'notifications');
 
     /**
      * Streams the user's most recent notifications. Returns the unsubscribe

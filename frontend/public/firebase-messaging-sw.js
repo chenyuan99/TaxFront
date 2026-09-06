@@ -9,8 +9,10 @@
  * A worker cannot read Vite's `import.meta.env`, so the Firebase config arrives
  * as query parameters on this script's own URL.
  */
-importScripts('https://www.gstatic.com/firebasejs/12.12.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging-compat.js');
+importScripts(
+    'https://www.gstatic.com/firebasejs/12.12.1/firebase-app-compat.js',
+    'https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging-compat.js',
+);
 
 const config = new URL(self.location.href).searchParams;
 
@@ -43,7 +45,7 @@ messaging.onBackgroundMessage((payload) => {
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const link = (event.notification.data && event.notification.data.link) || '/jobs';
+    const link = event.notification.data?.link || '/jobs';
 
     // Prefer an open TaxFront tab over spawning another one.
     event.waitUntil(
