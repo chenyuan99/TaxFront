@@ -52,7 +52,7 @@ Key routes and views include login, registration, dashboard, accountant dashboar
 
 ### Production Cloud Functions (`functions/`)
 
-The root `functions/` package is the backend. It uses Node 22, Firebase Functions v2, Firebase Admin, Genkit, and `@genkit-ai/googleai`.
+The root `functions/` package is the backend. It uses Node 22, Firebase Functions v2, Firebase Admin, Genkit, and `@genkit-ai/google-genai`.
 
 Callable functions:
 
