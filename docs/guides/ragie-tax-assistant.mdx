@@ -1,0 +1,235 @@
+---
+title: "Building a Tax Document Assistant with Ragie"
+description: "Use Ragie's RAG engine to answer questions from your W-2s, 1099s, and IRS publications — built with the Ragie skill in Claude Code."
+icon: "file-magnifying-glass"
+---
+
+> **Disclaimer:** This guide is for educational purposes. Consult a qualified tax professional for actual tax advice.
+
+Tax season means digging through a pile of PDFs — W-2s, 1099s, IRS publications — trying to answer questions like *"What was my total freelance income?"* or *"Am I eligible for the home office deduction?"* Instead of ctrl+F'ing through 15 documents, this guide walks through building a RAG app that answers questions from your actual tax documents.
+
+The complete source code is available at [ragieai/examples/tax-assistant](https://github.com/ragieai/examples/tree/main/tax-assistant).
+
+## Prerequisites
+
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
+- A [Ragie](https://ragie.ai/) account and API key
+- An [Anthropic](https://console.anthropic.com/) API key
+
+## Install the Ragie Skill
+
+Add the Ragie skill to Claude Code:
+
+```bash
+npx skills add ragieai/skills
+```
+
+This gives your agent context on Ragie's SDK — ingestion, retrieval, metadata filtering, and RAG generation patterns.
+
+## Scaffold the Project
+
+Set up a new TypeScript project with the Ragie and Anthropic clients:
+
+```typescript
+import { Ragie } from "ragie";
+import Anthropic from "@anthropic-ai/sdk";
+
+const ragie = new Ragie({ auth: process.env.RAGIE_API_KEY });
+const anthropic = new Anthropic();
+```
+
+## Ingest Tax Documents
+
+Given a folder of tax documents:
+
+```
+documents/
+  w2-acme-corp.pdf
+  1099-nec-freelance.pdf
+  1099-int-savings.pdf
+  irs-pub-17-your-federal-income-tax.pdf
+  irs-pub-587-home-office.pdf
+  receipts-home-office.pdf
+```
+
+Upload them to Ragie with metadata so queries can be scoped by document type:
+
+```typescript
+import { readFile, readdir } from "fs/promises";
+
+function classifyDocument(filename: string): string {
+  if (filename.startsWith("w2")) return "w2";
+  if (filename.startsWith("1099")) return "1099";
+  if (filename.startsWith("irs-")) return "irs-publication";
+  return "receipt";
+}
+
+async function ingest() {
+  const files = await readdir("documents");
+
+  for (const file of files.filter((f) => f.endsWith(".pdf"))) {
+    const buffer = await readFile(`documents/${file}`);
+    const doc = await ragie.documents.create({
+      file: new Blob([new Uint8Array(buffer)], { type: "application/pdf" }),
+      name: file,
+      metadata: {
+        type: classifyDocument(file),
+        taxYear: 2025,
+      },
+    });
+
+    console.log(`Uploaded ${file} (${doc.id}) — waiting for processing...`);
+    await waitForReady(doc.id);
+    console.log(`${file} ready`);
+  }
+}
+```
+
+Poll until each document transitions from `pending` to `ready`:
+
+```typescript
+async function waitForReady(docId: string, timeoutMs = 120_000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const doc = await ragie.documents.get({ documentId: docId });
+    if (doc.status === "ready") return;
+    if (doc.status === "failed") throw new Error(`Document ${docId} failed`);
+    await new Promise((r) => setTimeout(r, 3000));
+  }
+  throw new Error(`Document ${docId} not ready after ${timeoutMs}ms`);
+}
+```
+
+## Retrieve and Filter
+
+Search across all documents or narrow by type using metadata filters:
+
+```typescript
+async function searchDocuments(query: string, docType?: string) {
+  const results = await ragie.retrievals.retrieve({
+    query,
+    rerank: true,
+    topK: 6,
+    filter: docType ? { type: docType } : undefined,
+  });
+
+  return results.scoredChunks;
+}
+```
+
+Examples:
+
+```typescript
+// Search everything
+await searchDocuments("What was my total income?");
+
+// Search only 1099s
+await searchDocuments("What was my freelance income?", "1099");
+
+// Search only IRS publications
+await searchDocuments("Am I eligible for the home office deduction?", "irs-publication");
+```
+
+## Generate Answers with Claude
+
+Pass retrieved chunks to Claude with source citations:
+
+```typescript
+async function askTaxQuestion(question: string, docType?: string) {
+  const chunks = await searchDocuments(question, docType);
+
+  const context = chunks
+    .map((c) => `[Source: ${c.documentName}]\n${c.text}`)
+    .join("\n\n");
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 1024,
+    messages: [
+      {
+        role: "user",
+        content: `You are a tax document assistant. Answer the question using only the provided context. Cite the source document name for each claim. If the context doesn't contain enough information to answer, say so.
+
+Context:
+${context}
+
+Question: ${question}`,
+      },
+    ],
+  });
+
+  return (response.content[0] as { text: string }).text;
+}
+```
+
+Sample output:
+
+```
+What was my total wage income in 2025?
+
+Based on your W-2 from Acme Corp, your total wage income for 2025 was
+$95,000, with $18,240 withheld for federal income tax.
+(Source: w2-acme-corp.pdf)
+```
+
+```
+Am I eligible for the home office deduction?
+
+According to IRS Publication 587, you may be eligible for the home office
+deduction if you use part of your home regularly and exclusively for
+business. Since your 1099-NEC indicates freelance income, you likely
+qualify under the simplified method ($5 per square foot, up to 300 sq ft).
+(Source: irs-pub-587-home-office.pdf)
+```
+
+## CLI Interface
+
+Wrap it in a readline loop with an optional type-filter prefix:
+
+```typescript
+import * as readline from "readline";
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function prompt() {
+  rl.question("\nAsk a tax question (or 'quit'): ", async (input) => {
+    if (input.toLowerCase() === "quit") return rl.close();
+
+    let query = input;
+    let docType: string | undefined;
+
+    // Parse optional filter prefix: "1099: what was my income?"
+    const match = input.match(/^(w2|1099|irs-publication|receipt):\s*(.+)/i);
+    if (match) {
+      docType = match[1].toLowerCase();
+      query = match[2];
+    }
+
+    const answer = await askTaxQuestion(query, docType);
+    console.log(`\n${answer}`);
+    prompt();
+  });
+}
+
+console.log("Tax Document Assistant");
+console.log("Tip: prefix with a doc type to filter (e.g., '1099: freelance income?')");
+prompt();
+```
+
+## Running It
+
+```bash
+cp .env.example .env   # add RAGIE_API_KEY and ANTHROPIC_API_KEY
+npm install
+npm run ingest         # one-time: upload your documents
+npm run start          # start asking questions
+```
+
+## Next Steps
+
+- Extend metadata with `employer` or `payer` fields for per-source filtering
+- Add a web UI using TaxFront's existing React frontend
+- Integrate with the [TaxFront AI Tax Assistant](/guides/chat-assistant) for in-app document Q&A
