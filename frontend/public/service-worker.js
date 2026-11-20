@@ -1,4 +1,13 @@
 const CACHE_NAME = 'taxfront-shell-v1';
+
+/*
+ * On a dev server this worker does more harm than good: it serves the cached
+ * app shell over Vite's, so a restarted server hands back a stale bundle — a
+ * dead HMR token, env vars that look unset, code that was edited minutes ago.
+ * Caching is what makes it useful in production and a liability in dev, so it
+ * only caches when it is not running against localhost.
+ */
+const IS_DEV = ['localhost', '127.0.0.1', '[::1]'].includes(self.location.hostname);
 const APP_SHELL = [
     '/',
     '/index.html',
@@ -7,6 +16,10 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
+    if (IS_DEV) {
+        self.skipWaiting();
+        return;
+    }
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => cache.addAll(APP_SHELL))
@@ -28,7 +41,8 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    if (request.method !== 'GET' || url.origin !== self.location.origin) {
+    // Fall through to the network untouched in dev — see IS_DEV above.
+    if (IS_DEV || request.method !== 'GET' || url.origin !== self.location.origin) {
         return;
     }
 
