@@ -133,6 +133,7 @@ Not currently implemented. A previous Python implementation used Chromium automa
 ## Architecture Decisions
 
 - `docs/open-policy-agent.md` — OPA/Rego for the audit trigger rules. Evaluated, not adopted; records what would change the answer.
+- `docs/chrome-extension.md` — companion Chrome extension. Proposed, not built. Its central claim is that the extension is a pure client of existing infrastructure: capture performs the same two client writes the web app does (Storage object, then a `taxDocuments` row), so `processNewTaxDocument` and everything downstream runs unchanged. A design needing more backend than the one `createExtensionToken` callable should be re-derived.
 
 ## Development Workflow
 
