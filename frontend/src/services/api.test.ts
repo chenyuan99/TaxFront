@@ -14,6 +14,29 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { components } from '../api/schema.d.ts';
 import { api } from './api';
 
+const { callAnalysis, createCallable } = vi.hoisted(() => {
+    const callAnalysis = vi.fn();
+    return { callAnalysis, createCallable: vi.fn(() => callAnalysis) };
+});
+
+vi.mock('firebase/functions', () => ({ httpsCallable: createCallable }));
+
+describe('api.runFullAnalysis', () => {
+    it('returns both reports from one callable request', async () => {
+        const analysis = {
+            status: 'ok',
+            userId: 'uid1',
+            accountant: 'Accountant report',
+            auditor: 'Auditor report',
+        };
+        callAnalysis.mockResolvedValueOnce({ data: analysis });
+
+        await expect(api.runFullAnalysis({ filingStatus: 'single' })).resolves.toEqual(analysis);
+        expect(createCallable).toHaveBeenCalledWith({}, 'runFullAnalysis', { timeout: 300_000 });
+        expect(callAnalysis).toHaveBeenCalledExactlyOnceWith({ filingStatus: 'single' });
+    });
+});
+
 // ── helpers ────────────────────────────────────────────────────────────────
 
 function mockFetch(body: unknown, status = 200) {

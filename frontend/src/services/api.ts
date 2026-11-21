@@ -75,7 +75,21 @@ async function callFunction<T>(endpoint: string, method: 'GET' | 'POST' = 'GET',
     }
 }
 
+export interface FullAnalysisResponse {
+    status: 'ok';
+    userId: string;
+    accountant: string;
+    auditor: string;
+}
+
 export const api = {
+    runFullAnalysis: async (data: { filingStatus: string }) => {
+        const callable = httpsCallable<{ filingStatus: string }, FullAnalysisResponse>(functions, 'runFullAnalysis', {
+            timeout: 300_000,
+        });
+        return (await callable(data)).data;
+    },
+
     createUserProfile: (profile: UserProfile) =>
         callFunction<string>('/create_user_profile', 'POST', profile),
 

@@ -34,6 +34,7 @@ export async function runAccountantAgent(db: Firestore, input: AccountantInput):
     model: "googleai/gemini-2.5-flash",
     system: loadPrompt("accountant"),
     prompt,
+    context: { auth: { uid: userId } },
     maxTurns: 5,
     tools: [
       docTools.fetchUserDocuments,

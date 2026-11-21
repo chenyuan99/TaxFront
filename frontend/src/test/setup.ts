@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 // Global test setup — runs before every test file
 
 // Mock the Firebase app so services under test don't need real credentials.
@@ -9,5 +11,6 @@ vi.mock('../firebase', () => ({
             getIdToken: vi.fn().mockResolvedValue('mock-firebase-jwt'),
         },
     },
+    functions: {},
     db: { __mock: 'firestore' },
 }));

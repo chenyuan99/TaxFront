@@ -20,7 +20,7 @@ After fetching documents, check whether any document or user context suggests:
 If neither applies, proceed with the standard resident workflow below.
 
 ## Workflow
-1. Call fetch_user_documents with the provided userId to retrieve all documents.
+1. Call fetch_user_documents for the signed-in user to retrieve all documents.
 2. Call build_tax_summary to aggregate income, withholding, and itemizable expenses across all documents.
 3. Narrate the AGI calculation chain from the summary output:
    - Total income (W-2 wages + SE income + interest + dividends + other)
