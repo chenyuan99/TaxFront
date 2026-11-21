@@ -1,6 +1,27 @@
 import type { Firestore } from "firebase-admin/firestore";
 import { getAI } from "../ai";
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function parseExtractionResponse(text: string) {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const value: unknown = JSON.parse(fenced?.[1] ?? trimmed);
+  if (!isObject(value)) throw new Error("Expected an extraction object");
+
+  const { documentType, taxYear, extractedData } = value;
+  if (typeof documentType !== "string" || !documentType.trim() || !isObject(extractedData)) {
+    throw new Error("Expected a document type and extracted fields");
+  }
+  if (taxYear != null && (typeof taxYear !== "number" || !Number.isInteger(taxYear) ||
+    taxYear < 1000 || taxYear > 9999)) {
+    throw new Error("Expected a four-digit tax year");
+  }
+  return { documentType, taxYear: taxYear ?? null, extractedData };
+}
+
 const EXTRACTION_PROMPT = `You are a tax document extraction engine. Analyze the provided tax document image or PDF and return ONLY a JSON object. Do not include markdown code fences, explanations, or any text outside the JSON.
 
 Return this exact structure:
@@ -87,26 +108,20 @@ export async function extractTaxDocument(
     return { ok: false, error };
   }
 
-  // Parse the model's JSON response
-  let parsed: { documentType?: string; taxYear?: number; extractedData?: Record<string, unknown> };
+  let parsed: ReturnType<typeof parseExtractionResponse>;
   try {
-    // Strip markdown fences if the model added them
-    const cleaned = rawText.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
-    parsed = JSON.parse(cleaned);
+    parsed = parseExtractionResponse(rawText);
   } catch {
-    const error = "Extraction returned unparseable response";
+    const error = "Extraction returned an invalid response";
     await docRef.update({
       status: "error",
       errorMessage: error,
-      rawExtractionResponse: rawText.slice(0, 1000),
       processedAt: new Date().toISOString(),
     });
     return { ok: false, error };
   }
 
-  const documentType = parsed.documentType ?? "unknown";
-  const taxYear = parsed.taxYear ?? null;
-  const extractedData = parsed.extractedData ?? {};
+  const { documentType, taxYear, extractedData } = parsed;
 
   await docRef.update({
     documentType,
