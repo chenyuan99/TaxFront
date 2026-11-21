@@ -5,13 +5,30 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "mintlify dev",
-    "install": "mintlify install"
+    "dev": "mintlify dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "mintlify": "^4.2.521"
+  },
+  "overrides": {
+    "axios": "1.20.0",
+    "adm-zip": "0.6.1",
+    "@mintlify/prebuild": {
+      "sharp": "0.35.5",
+      "js-yaml": "4.3.2"
+    },
+    "favicons": {
+      "sharp": "0.35.5"
+    },
+    "sharp-ico": {
+      "sharp": "0.35.5"
+    },
+    "js-yaml@^4": "4.3.2",
+    "front-matter": {
+      "js-yaml": "3.15.2"
+    }
   }
 }
