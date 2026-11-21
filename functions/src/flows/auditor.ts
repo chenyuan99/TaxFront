@@ -2,6 +2,7 @@ import type { Firestore } from "firebase-admin/firestore";
 import { getAI } from "../ai";
 import { getDocumentTools } from "../tools/documentTools";
 import { getAuditTools } from "../tools/auditTools";
+import { validateCrossFormRules } from "../tools/accountantTools";
 import { loadPrompt } from "../prompts";
 
 export interface AuditorInput {
@@ -39,5 +40,12 @@ export async function runAuditorAgent(db: Firestore, input: AuditorInput): Promi
     ],
   });
 
-  return text;
+  const warnings = await validateCrossFormRules(db, userId, 2024);
+  if (!warnings.length) return text;
+
+  const checklist = warnings.map(({ form, documents, message }) => {
+    const source = documents.length ? documents.join(", ") : "Tax profile";
+    return `- ${form} (${source}): ${message}`;
+  });
+  return [text, "2024 Cross-Form Checklist", ...checklist].join("\n\n");
 }

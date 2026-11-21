@@ -20,6 +20,9 @@ interface TaxProfile {
 
     // Filing Status
     filingStatus: 'single' | 'married_joint' | 'married_separate' | 'head_household' | 'qualifying_widow';
+    residencyStatus?: '' | 'citizen' | 'resident_alien' | 'nonresident_alien';
+    residencyTaxYear?: number;
+    claimsExemptPresenceDays?: boolean;
     spouseName?: string;
     spouseSSN?: string;
 
@@ -83,6 +86,19 @@ const defaultProfile: TaxProfile = {
 export function Profile() {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<TaxProfile>(defaultProfile);
+    const [presenceDays, setPresenceDays] = useState(['', '', '']);
+    const [residencyYearInput, setResidencyYearInput] = useState<string>();
+    const residencyYear = profile.residencyTaxYear ?? new Date().getFullYear() - 1;
+    const countableDays = presenceDays.map(Number);
+    const validDays = Number.isInteger(residencyYear) && presenceDays.every((value, index) => {
+        const year = residencyYear - index;
+        const maxDays = new Date(Date.UTC(year, 1, 29)).getUTCMonth() === 1 ? 366 : 365;
+        return value !== '' && Number.isInteger(countableDays[index])
+            && countableDays[index] >= 0 && countableDays[index] <= maxDays;
+    });
+    const weightedSixths = 6 * countableDays[0] + 2 * countableDays[1] + countableDays[2];
+    const meetsPresenceTest = countableDays[0] >= 31 && weightedSixths >= 6 * 183;
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -118,7 +134,7 @@ export function Profile() {
 
         setSaving(true);
         try {
-            await setDoc(doc(db, 'userProfiles', user.uid), profile);
+            await setDoc(doc(db, 'userProfiles', user.uid), { ...profile, residencyTaxYear: residencyYear });
             setMessage({ type: 'success', text: 'Profile saved successfully' });
         } catch (error) {
             console.error('Error saving profile:', error);
@@ -228,6 +244,75 @@ export function Profile() {
                             </select>
                         </div>
                     </div>
+
+                    <fieldset className="bg-white shadow rounded-lg p-6 space-y-4">
+                        <legend className="text-xl font-semibold text-gray-900">U.S. Tax Residency</legend>
+                        <label className="block">
+                            Tax year
+                            <input
+                                className="block rounded-md border-gray-300"
+                                type="number" min="1902" max="2200" required value={residencyYearInput ?? residencyYear}
+                                onChange={(event) => {
+                                    setResidencyYearInput(event.target.value);
+                                    setProfile({
+                                        ...profile,
+                                        residencyTaxYear: event.target.valueAsNumber,
+                                        residencyStatus: '',
+                                        claimsExemptPresenceDays: false,
+                                    });
+                                    setPresenceDays(['', '', '']);
+                                }}
+                            />
+                        </label>
+                        <label className="block">
+                            Confirmed tax residency status
+                            <select
+                                className="block rounded-md border-gray-300"
+                                name="residencyStatus" value={profile.residencyStatus ?? ''} onChange={handleChange}
+                            >
+                                <option value="">Select status</option>
+                                <option value="citizen">U.S. citizen</option>
+                                <option value="resident_alien">Resident alien</option>
+                                <option value="nonresident_alien">Nonresident alien</option>
+                            </select>
+                        </label>
+                        {profile.residencyStatus && (
+                            <p>Typical federal return for this status{' '}
+                                {profile.residencyStatus === 'nonresident_alien'
+                                    ? <a className="underline" href="https://www.irs.gov/forms-pubs/about-form-1040-nr">Form 1040-NR</a>
+                                    : <a className="underline" href="https://www.irs.gov/forms-pubs/about-form-1040">Form 1040</a>}.</p>
+                        )}
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox" name="claimsExemptPresenceDays"
+                                checked={profile.claimsExemptPresenceDays ?? false} onChange={handleChange}
+                            />
+                            I am excluding days as an exempt individual for this tax year
+                        </label>
+                        {profile.claimsExemptPresenceDays && <p>Review <a className="underline" href="https://www.irs.gov/forms-pubs/about-form-8843">Form 8843</a> for your excluded days.</p>}
+                        <h3 className="font-semibold">Substantial Presence Test</h3>
+                        <p>Enter countable U.S. days after any applicable exclusions. The green card test, treaties, and other exceptions can affect your residency.</p>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            {presenceDays.map((days, index) => (
+                                <label key={index}>
+                                    {Number.isInteger(residencyYear) ? residencyYear - index : "Year"} countable days
+                                    <input
+                                        className="block w-full rounded-md border-gray-300"
+                                        type="number" min="0" max="366" value={days}
+                                        onChange={(event) => setPresenceDays(presenceDays.map(
+                                            (value, position) => position === index ? event.target.value : value
+                                        ))}
+                                    />
+                                </label>
+                            ))}
+                        </div>
+                        {validDays && (
+                            <p role="status">
+                                {(weightedSixths / 6).toFixed(2)} weighted days.
+                                {' '}{meetsPresenceTest ? 'Meets' : 'Does not meet'} the day-count requirements.
+                            </p>
+                        )}
+                    </fieldset>
 
                     {/* Income Sources */}
                     <div className="bg-white shadow rounded-lg p-6">
