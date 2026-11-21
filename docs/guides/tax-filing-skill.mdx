@@ -1,0 +1,102 @@
+---
+title: "Tax Filing Skill — Gaps & Backlog"
+description: "Analysis of the clawhub.ai/irreel/tax-filing skill against TaxFront's current capabilities, with prioritised backlog items."
+icon: "list-check"
+---
+
+> **Source skill:** [clawhub.ai/irreel/tax-filing](https://clawhub.ai/irreel/tax-filing) — v0.2.0, MIT-0, 479 downloads
+
+The tax-filing skill is a Claude Code skill that guides users through preparing US federal tax returns (citizens, resident aliens, and nonresident aliens). This page documents where it overlaps with TaxFront's existing stack and what gaps remain as actionable backlog items.
+
+## Overlap with TaxFront
+
+| Skill capability | TaxFront equivalent | Status |
+|---|---|---|
+| pypdf form filling | `backend/tax_forms/form_filler.py` | ✅ Exists |
+| W-2 / 1099 field extraction | `functions/src/flows/extractor.ts` | ✅ Exists |
+| 1040-NR + Form 8843 guidance | `docs/留学生报税/` | ✅ Docs only |
+| Schedule SE validation (1099-NEC) | `runAuditor` agent | ⚠️ Partial |
+| Substantial Presence Test router | — | ❌ Missing |
+| pypdf safety rules enforcement | `form_filler.py` | ⚠️ Unaudited |
+| Cross-form validation checklist | `runAuditor` agent | ❌ Missing |
+
+## Backlog Items
+
+### 1 — Substantial Presence Test router
+
+**Priority:** High  
+**Track:** Backend / Cloud Functions
+
+TaxFront has no logic to classify a user as a citizen/resident (→ Form 1040) versus a nonresident alien (→ Form 1040-NR). The skill's Step 1–2 workflow covers this via the IRS Substantial Presence Test: count days present on visa categories (F, J, H, etc.) over a 3-year rolling window.
+
+This is the most impactful gap given TaxFront's existing Chinese-language international-student docs (`docs/留学生报税/`), which imply nonresident users but never enforce the correct form path.
+
+**Implementation notes:**
+- Add `residencyStatus` field to user profile (`userProfiles/{uid}`) with values: `citizen`, `resident_alien`, `nonresident_alien`
+- Add a Substantial Presence Test calculator to the Profile page (days input per year × IRS weight: 1 / ⅓ / ⅙)
+- Route `form_filler.py` to 1040 vs 1040-NR based on `residencyStatus`
+- Add Form 8843 to the filing flow for nonresident aliens
+
+**Related files:**
+- `frontend/src/components/Profile.tsx`
+- `backend/tax_forms/form_filler.py`
+- `backend/tax_forms/form_definitions.py`
+- `docs/留学生报税/`
+
+---
+
+### 2 — Audit `form_filler.py` against pypdf safety rules
+
+**Priority:** Medium  
+**Track:** Backend
+
+The skill enforces three safety rules for pypdf form filling that prevent silent data corruption:
+
+1. **Never write to the input path** — always write to a new output file
+2. **Use `auto_regenerate=False`** on the `PdfWriter` to prevent field value regeneration
+3. **Iterate all pages** when filling fields to avoid skipping fields on non-first pages
+
+`backend/tax_forms/form_filler.py` uses pypdf but has not been audited against these rules. Violations can cause fields to appear filled in code but render blank in the output PDF.
+
+**Action:** Review `form_filler.py` and apply all three rules where missing.
+
+**Related files:**
+- `backend/tax_forms/form_filler.py`
+
+---
+
+### 3 — Cross-form validation in the Auditor agent
+
+**Priority:** Medium  
+**Track:** Cloud Functions / AI Agent
+
+The skill includes a validation checklist of common mistakes that arise when forms are considered in isolation. The `runAuditor` agent should check these automatically when a user's documents are analysed:
+
+| Rule | Trigger condition |
+|---|---|
+| File Schedule SE | 1099-NEC income present |
+| File Schedule C | Self-employment income present |
+| File Form 8843 | Nonresident alien with F/J/M/Q visa |
+| Check 1099-INT threshold | Interest income > $10 |
+| Warn on missing W-2 | Employer reported wages but no W-2 uploaded |
+
+**Implementation notes:**
+- Add a `validateCrossFormRules` tool to `functions/src/tools/accountantTools.ts`
+- Call it as the final step in `runAuditorAgent` after `fetchUserDocuments`
+- Return structured warnings with document names cited
+
+**Related files:**
+- `functions/src/flows/auditor.ts`
+- `functions/src/tools/accountantTools.ts`
+
+---
+
+## Installing the Skill
+
+To use the tax-filing skill directly in Claude Code during development:
+
+```bash
+npx skills add irreel/tax-filing
+```
+
+Once installed, the agent has full context on IRS form field mappings, the Substantial Presence Test formula, treaty exemptions (e.g. US-China Article 20(c)), and the pypdf `update_form.py` safety patterns.
