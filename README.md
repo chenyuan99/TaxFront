@@ -1,3 +1,5 @@
+
+
 # TaxFront
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/chenyuan99/TaxFront/frontend.yml)](https://github.com/chenyuan99/TaxFront/actions)
@@ -24,13 +26,11 @@ Genkit + Gemini 2.5 Flash
   document extraction
   accountant and auditor agents
 
-Local / self-hosted only
-  Python Flask backend
-  Python agent, parser, RAG, queue, and tax-form modules
-  Docker Compose frontend + backend stack
+Self-hosting
+  Docker Compose builds and serves the frontend behind Nginx
 ```
 
-Production is centered on the root `functions/` TypeScript Cloud Functions. The Python Flask app in `backend/` is for local development, Docker self-hosting, and legacy or experimental backend modules.
+All server-side work runs in the root `functions/` TypeScript Cloud Functions.
 
 ## Main Capabilities
 
@@ -40,8 +40,7 @@ Production is centered on the root `functions/` TypeScript Cloud Functions. The 
 - Gemini-powered document extraction for W-2, 1099-NEC, 1099-INT, 1099-DIV, 1098, 1040, Schedule C, and fallback `other` documents.
 - AI Accountant agent for 2024 federal tax preparation estimates, deductions, credits, AGI flow, withholding, and action items.
 - AI Auditor agent for data quality checks, cross-form consistency, IRS audit triggers, and risk scoring.
-- Local Python backend for Flask routes, LangChain agents, parsing experiments, FAISS/RAG, task queue, and IRS form tooling.
-- Docker setup for a self-hosted Nginx frontend plus Gunicorn/Flask backend.
+- Docker setup for serving the frontend behind Nginx.
 
 ## Runtime Components
 
@@ -53,7 +52,7 @@ Key routes and views include login, registration, dashboard, accountant dashboar
 
 ### Production Cloud Functions (`functions/`)
 
-The root `functions/` package is the current production backend. It uses Node 22, Firebase Functions v2, Firebase Admin, Genkit, and `@genkit-ai/googleai`.
+The root `functions/` package is the backend. It uses Node 22, Firebase Functions v2, Firebase Admin, Genkit, and `@genkit-ai/google-genai`.
 
 Callable functions:
 
@@ -73,23 +72,13 @@ Firestore trigger:
 
 AI model standard: agent and extraction flows use `googleai/gemini-2.5-flash` with Genkit. Agent prompts live in `functions/prompts/` and are copied into `functions/lib/prompts/` during build.
 
-### Python Backend (`backend/`)
+### Semantic Layer (`functions/src/semantic/`)
 
-`backend/app.py` is a Flask development server and Docker backend. It can serve the built frontend, expose health/Firebase checks, and run local `/agents/auditor` and `/agents/accountant` routes when Firebase and `OPENAI_API_KEY` are configured.
-
-Important modules:
-
-| Path | Purpose |
-| --- | --- |
-| `backend/agents/` | Python Accountant and Auditor agents, LangChain/LangGraph tools, tests, and Markdown skills. |
-| `backend/parser/` | Python document parser and legacy Firebase function code. |
-| `backend/tax_forms/` | IRS form definitions, PDF/form filling, and Flask routes. |
-| `backend/embedding/`, `backend/faiss_index/`, `backend/src/` | FAISS/RAG and experimental OpenAI, Vertex AI, and Ollama pipelines. |
-| `backend/queue/` | Firestore-backed async task queue and processors. |
+`taxFields.ts` is the single source of truth for document classification, extracted-field aliases, and income aggregation. Both the accountant and auditor tool sets read from it so their figures cannot drift apart. Add field lookups and income totals there rather than in individual tools.
 
 ### Docs And Design Assets
 
-Project-authored Markdown lives across the root, `.kiro/steering/`, `backend/`, `docker/`, `docs/`, `frontend/`, and `functions/prompts/`. The large design-system docs in `frontend/` define the current UI palette, component patterns, and implementation conventions.
+Project-authored Markdown lives across the root, `.kiro/steering/`, `docker/`, `docs/`, `frontend/`, and `functions/prompts/`. The large design-system docs in `frontend/` define the current UI palette, component patterns, and implementation conventions.
 
 ## Data Model
 
@@ -136,7 +125,6 @@ errorMessage: string
 
 - Node.js 22+ for frontend and root Cloud Functions.
 - npm.
-- Python 3.12+ for the local Flask backend.
 - Firebase CLI.
 - Google Cloud / Firebase project access.
 - Docker and Docker Compose for self-hosted local deployment.
@@ -162,6 +150,8 @@ npm run lint
 
 Frontend environment variables use the `VITE_FIREBASE_*` prefix. See `frontend/.env.example`.
 
+Browser notifications for finished processing jobs need `VITE_FIREBASE_VAPID_KEY` — the Web Push certificate key pair from Firebase Console → Project Settings → Cloud Messaging. Leave it unset and the app builds and runs normally; the in-app notification bell still works, only the browser-level push opt-in is hidden.
+
 ### Cloud Functions
 
 ```bash
@@ -171,6 +161,8 @@ npm run build
 npm run serve
 ```
 
+`npm run serve` runs the build and starts the Firebase Functions emulator.
+
 Deploy:
 
 ```bash
@@ -179,28 +171,6 @@ npm run deploy
 ```
 
 Required runtime configuration includes Firebase project credentials and Google AI/Genkit access for Gemini.
-
-### Python Backend
-
-```bash
-cd backend
-python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
-```
-
-The Flask server defaults to `http://localhost:8080`.
-
-Useful environment variables:
-
-```text
-GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
-FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-OPENAI_API_KEY=your_openai_key
-FLASK_DEBUG=false
-PORT=8080
-```
 
 ## Docker
 
@@ -213,9 +183,10 @@ Default services:
 | Service | Port | Description |
 | --- | --- | --- |
 | Frontend | `80` | Built React app served by Nginx. |
-| Backend | `5000` | Flask app served by Gunicorn. |
 
-See [docker/README.md](docker/README.md) for environment variables, health checks, production compose commands, and maintenance notes.
+Cloud Functions are deployed with the Firebase CLI rather than containerized.
+
+See [docker/README.md](docker/README.md) for environment variables, health checks, and maintenance notes.
 
 ## Testing
 
@@ -225,17 +196,11 @@ npm test
 ```
 
 ```bash
-cd backend
-python -m pytest
-python -m pytest --cov
-```
-
-```bash
 cd functions
-npm run build
+npm test
 ```
 
-Backend agent business logic is covered with pytest tests under `backend/agents/tests/`; frontend tests use Vitest.
+Cloud Function tests live in `functions/test/` and run offline under Vitest: `taxFields.test.ts` covers the semantic layer, and `tools.test.ts` invokes the Genkit tools directly. Frontend tests also use Vitest.
 
 ## API Notes
 

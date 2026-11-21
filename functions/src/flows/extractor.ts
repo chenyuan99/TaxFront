@@ -23,13 +23,22 @@ Field names to use in extractedData by form type:
 
 All monetary values must be numbers (not strings). Omit fields that are blank or not legible.`;
 
+/**
+ * Outcome of an extraction run, reported to the caller so it can close out the
+ * surrounding job. The document record is updated either way — the return value
+ * exists so the trigger knows whether to notify success or failure.
+ */
+export type ExtractionResult =
+  | { ok: true; documentType: string; taxYear: number | null; fieldsExtracted: number }
+  | { ok: false; error: string };
+
 export async function extractTaxDocument(
   db: Firestore,
   documentId: string,
   url: string,
   filename: string,
   mimeType: string
-): Promise<void> {
+): Promise<ExtractionResult> {
   const docRef = db.collection("taxDocuments").doc(documentId);
   const ai = getAI();
 
@@ -41,12 +50,13 @@ export async function extractTaxDocument(
     const buffer = await response.arrayBuffer();
     pdfBase64 = Buffer.from(buffer).toString("base64");
   } catch (err) {
+    const error = `Failed to download document: ${(err as Error).message}`;
     await docRef.update({
       status: "error",
-      errorMessage: `Failed to download document: ${(err as Error).message}`,
+      errorMessage: error,
       processedAt: new Date().toISOString(),
     });
-    return;
+    return { ok: false, error };
   }
 
   // Resolve content type — prefer stored MIME, fallback to filename extension
@@ -68,12 +78,13 @@ export async function extractTaxDocument(
     });
     rawText = text;
   } catch (err) {
+    const error = `Gemini extraction failed: ${(err as Error).message}`;
     await docRef.update({
       status: "error",
-      errorMessage: `Gemini extraction failed: ${(err as Error).message}`,
+      errorMessage: error,
       processedAt: new Date().toISOString(),
     });
-    return;
+    return { ok: false, error };
   }
 
   // Parse the model's JSON response
@@ -83,20 +94,27 @@ export async function extractTaxDocument(
     const cleaned = rawText.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
     parsed = JSON.parse(cleaned);
   } catch {
+    const error = "Extraction returned unparseable response";
     await docRef.update({
       status: "error",
-      errorMessage: "Extraction returned unparseable response",
+      errorMessage: error,
       rawExtractionResponse: rawText.slice(0, 1000),
       processedAt: new Date().toISOString(),
     });
-    return;
+    return { ok: false, error };
   }
 
+  const documentType = parsed.documentType ?? "unknown";
+  const taxYear = parsed.taxYear ?? null;
+  const extractedData = parsed.extractedData ?? {};
+
   await docRef.update({
-    documentType: parsed.documentType ?? "unknown",
-    taxYear: parsed.taxYear ?? null,
-    extractedData: parsed.extractedData ?? {},
+    documentType,
+    taxYear,
+    extractedData,
     status: "processed",
     processedAt: new Date().toISOString(),
   });
+
+  return { ok: true, documentType, taxYear, fieldsExtracted: Object.keys(extractedData).length };
 }

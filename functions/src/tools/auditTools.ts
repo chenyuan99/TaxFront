@@ -1,5 +1,18 @@
 import { z } from "genkit";
 import { getAI } from "../ai";
+import {
+  FIELD_ALIASES,
+  asText,
+  classifyDocument,
+  collectIncome,
+  documentIncome,
+  extractedFieldsOf,
+  normalizeDocType,
+  parseDocumentsJson,
+  pickString,
+  round2,
+  safeFloat,
+} from "../semantic/taxFields";
 
 let _tools: ReturnType<typeof buildAuditTools> | null = null;
 
@@ -26,9 +39,10 @@ function buildAuditTools() {
       }
 
       const triggers: unknown[] = [];
-      const docType = documentType.toUpperCase().replace(/[-\s]/g, "");
+      const docType = normalizeDocType(documentType);
+      const category = classifyDocument(documentType);
 
-      const income = parseFloat(String(data.income ?? data.gross_wages ?? data.total_income ?? 0)) || 0;
+      const income = documentIncome(data, category);
 
       if (income > 1_000_000) {
         triggers.push({ trigger: "High-income return (>$1M)", severity: "HIGH", detail: "IRS audits ~5% of returns with income over $1M (IRS Data Book 2023).", field: "income" });
@@ -40,10 +54,10 @@ function buildAuditTools() {
         triggers.push({ trigger: "Round-number income", severity: "LOW", detail: "Income reported as a round thousand may indicate estimation.", field: "income" });
       }
 
-      const netProfit = data.net_profit != null ? parseFloat(String(data.net_profit)) : null;
-      const totalExpenses = data.total_expenses != null ? parseFloat(String(data.total_expenses)) : null;
+      const netProfit = data.net_profit != null ? safeFloat(data.net_profit) : null;
+      const totalExpenses = data.total_expenses != null ? safeFloat(data.total_expenses) : null;
 
-      if (netProfit != null && totalExpenses != null && !isNaN(netProfit) && !isNaN(totalExpenses)) {
+      if (netProfit != null && totalExpenses != null) {
         const grossRevenue = netProfit + totalExpenses;
         if (grossRevenue > 0) {
           const expenseRatio = totalExpenses / grossRevenue;
@@ -58,8 +72,8 @@ function buildAuditTools() {
         }
       }
 
-      const charitable = data.charitable_contributions != null ? parseFloat(String(data.charitable_contributions)) : null;
-      if (charitable != null && income > 0 && !isNaN(charitable)) {
+      const charitable = data.charitable_contributions != null ? safeFloat(data.charitable_contributions) : null;
+      if (charitable != null && income > 0) {
         const ratio = charitable / income;
         if (ratio > 0.2) {
           triggers.push({ trigger: "Charitable contributions exceed 20% of income", severity: "HIGH", detail: `Charitable deductions are ${Math.round(ratio * 100)}% of income. IRS Publication 526 limits vary by deduction type.`, field: "charitable_contributions" });
@@ -91,58 +105,49 @@ function buildAuditTools() {
       outputSchema: z.unknown(),
     },
     async ({ documentsJson }) => {
-      let docs: Record<string, unknown>[];
-      try {
-        const parsed = JSON.parse(documentsJson);
-        docs = Array.isArray(parsed) ? parsed : (parsed.documents ?? []);
-      } catch {
+      const docs = parseDocumentsJson(documentsJson);
+      if (docs === null) {
         return { status: "error", message: "documentsJson must be valid JSON" };
       }
 
+      const agg = collectIncome(docs);
       const findings: unknown[] = [];
-      const incomeSources: unknown[] = [];
-
-      const w2Docs = docs.filter((d) => String(d.documentType ?? "").toUpperCase().replace(/[-\s]/g, "").includes("W2"));
-      const necDocs = docs.filter((d) => { const t = String(d.documentType ?? "").toUpperCase(); return t.includes("1099") && t.includes("NEC"); });
-      const intDocs = docs.filter((d) => String(d.documentType ?? "").toUpperCase().includes("1099-INT") || String(d.documentType ?? "").toUpperCase().includes("1099INT"));
-      const divDocs = docs.filter((d) => String(d.documentType ?? "").toUpperCase().includes("1099-DIV") || String(d.documentType ?? "").toUpperCase().includes("1099DIV"));
 
       const einsSeenMap: Record<string, string> = {};
-      for (const doc of w2Docs) {
-        const ext = (doc.extractedData ?? {}) as Record<string, unknown>;
-        const ein = String(ext.employer_ein ?? ext.ein ?? "");
-        const docId = String(doc.id ?? "unknown");
-        if (ein) {
-          if (einsSeenMap[ein]) {
-            findings.push({ type: "DUPLICATE_EIN", severity: "HIGH", message: `Employer EIN ${ein} appears on multiple W-2s (IDs: ${einsSeenMap[ein]}, ${docId}). May be a duplicate upload or two part-year jobs.`, documentIds: [einsSeenMap[ein], docId] });
-          } else {
-            einsSeenMap[ein] = docId;
-          }
+      for (const doc of agg.documentsByCategory.W2) {
+        const ein = pickString(extractedFieldsOf(doc), FIELD_ALIASES.employerEin);
+        const docId = asText(doc.id) || "unknown";
+        if (!ein) continue;
+        if (einsSeenMap[ein]) {
+          findings.push({ type: "DUPLICATE_EIN", severity: "HIGH", message: `Employer EIN ${ein} appears on multiple W-2s (IDs: ${einsSeenMap[ein]}, ${docId}). May be a duplicate upload or two part-year jobs.`, documentIds: [einsSeenMap[ein], docId] });
+        } else {
+          einsSeenMap[ein] = docId;
         }
-        const wages = parseFloat(String(ext.wages ?? ext.gross_wages ?? ext.income ?? 0)) || 0;
-        if (wages > 0) incomeSources.push({ source: `W-2 (${docId.slice(0, 8)}…)`, amount: wages });
       }
 
-      let necTotal = 0;
-      for (const doc of necDocs) {
-        const ext = (doc.extractedData ?? {}) as Record<string, unknown>;
-        const amount = parseFloat(String(ext.nonemployee_compensation ?? ext.income ?? ext.amount ?? 0)) || 0;
-        if (amount > 0) { necTotal += amount; incomeSources.push({ source: `1099-NEC (${String(doc.id ?? "").slice(0, 8)}…)`, amount }); }
-      }
-      if (necTotal > 0) findings.push({ type: "INFO", severity: "LOW", message: `Total 1099-NEC nonemployee compensation: $${necTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}. Ensure reported on Schedule C or Schedule 1 Line 8.` });
-
-      const interestTotal = intDocs.reduce((sum, d) => sum + (parseFloat(String((d.extractedData as Record<string, unknown> | undefined)?.interest_income ?? (d.extractedData as Record<string, unknown> | undefined)?.amount ?? 0)) || 0), 0);
-      const dividendTotal = divDocs.reduce((sum, d) => sum + (parseFloat(String((d.extractedData as Record<string, unknown> | undefined)?.total_dividends ?? (d.extractedData as Record<string, unknown> | undefined)?.amount ?? 0)) || 0), 0);
-      if (interestTotal + dividendTotal > 1500) {
-        findings.push({ type: "SCHEDULE_B_REQUIRED", severity: "MEDIUM", message: `Combined interest ($${interestTotal.toFixed(2)}) and dividends ($${dividendTotal.toFixed(2)}) exceed $1,500 — Schedule B is required.` });
+      if (agg.selfEmploymentIncome > 0) {
+        findings.push({ type: "INFO", severity: "LOW", message: `Total 1099-NEC nonemployee compensation: $${agg.selfEmploymentIncome.toLocaleString("en-US", { minimumFractionDigits: 2 })}. Ensure reported on Schedule C or Schedule 1 Line 8.` });
       }
 
-      const totalDocumentedIncome = (incomeSources as Array<{ amount: number }>).reduce((sum, s) => sum + s.amount, 0);
+      if (agg.interestIncome + agg.dividendIncome > 1500) {
+        findings.push({ type: "SCHEDULE_B_REQUIRED", severity: "MEDIUM", message: `Combined interest ($${agg.interestIncome.toFixed(2)}) and dividends ($${agg.dividendIncome.toFixed(2)}) exceed $1,500 — Schedule B is required.` });
+      }
+
+      const sourceLabels: Record<string, string> = {
+        W2: "W-2",
+        SELF_EMPLOYMENT: "1099-NEC",
+        INTEREST: "1099-INT",
+        DIVIDEND: "1099-DIV",
+      };
 
       return {
         status: "ok", documentsAnalyzed: docs.length,
-        totalDocumentedIncome: Math.round(totalDocumentedIncome * 100) / 100,
-        incomeSources, findings,
+        totalDocumentedIncome: round2(agg.totalIncome),
+        incomeSources: agg.sources.map((s) => ({
+          source: `${sourceLabels[s.category] ?? s.documentType} (${s.documentId.slice(0, 8)}…)`,
+          amount: round2(s.amount),
+        })),
+        findings,
         note: "Cross-reference limited to extracted document data. Full reconciliation requires filed Form 1040.",
       };
     }

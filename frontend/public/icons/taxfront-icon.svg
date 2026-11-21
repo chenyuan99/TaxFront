@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">TaxFront</title>
+  <rect width="512" height="512" rx="112" fill="#0f766e"/>
+  <path d="M150 104h164l72 72v232H150z" fill="#fff"/>
+  <path d="M314 104v72h72" fill="#99f6e4"/>
+  <path d="M203 235h130M203 286h106M203 337h74" fill="none" stroke="#0f766e" stroke-width="26" stroke-linecap="round"/>
+</svg>
