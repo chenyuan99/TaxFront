@@ -8,6 +8,7 @@ import { runAuditorAgent } from "./flows/auditor";
 import { extractTaxDocument } from "./flows/extractor";
 import { NOTIFICATIONS_COLLECTION, completeJob, createJob, failJob, markJobProcessing } from "./jobs";
 import { sendPushToUser } from "./push";
+import { readAgentInput } from "./agentInput";
 
 initializeApp();
 
@@ -20,8 +21,7 @@ export const runAccountant = onCall(
   async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Must be authenticated");
 
-    const { userId, filingStatus, task } = request.data as Record<string, string>;
-    if (!userId) throw new HttpsError("invalid-argument", "userId is required");
+    const { userId, filingStatus, task } = readAgentInput(request.data, "accountant");
 
     const db = getFirestore();
 
@@ -39,8 +39,7 @@ export const runAuditor = onCall(
   async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Must be authenticated");
 
-    const { userId, task } = request.data as Record<string, string>;
-    if (!userId) throw new HttpsError("invalid-argument", "userId is required");
+    const { userId, task } = readAgentInput(request.data, "auditor");
 
     const db = getFirestore();
 
