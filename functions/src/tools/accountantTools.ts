@@ -1,7 +1,7 @@
 import type { Firestore } from "firebase-admin/firestore";
 import { z } from "genkit";
 import { getAI } from "../ai";
-import { classifyDocument, collectIncome, parseDocumentsJson, round2 } from "../semantic/taxFields";
+import { classifyDocument, collectIncome, parseDocumentsJson, round2, extractedFieldsOf, normalizeDocType, pickAmount } from "../semantic/taxFields";
 
 let _tools: ReturnType<typeof buildAccountantTools> | null = null;
 
@@ -147,16 +147,16 @@ export async function validateCrossFormRules(db: Firestore, userId: string, taxY
   const profile = profileDoc.data();
   const hasYearProfile = profile?.residencyTaxYear === taxYear;
   const documents = snapshot.docs.map((doc) => doc.data())
-    .filter((doc) => (doc.taxYear ?? doc.tax_year) === taxYear)
+    .filter((doc) => Number(doc.taxYear ?? doc.tax_year) === taxYear)
     .map((doc) => ({
       name: String(doc.name ?? doc.originalName ?? "Unnamed upload").replace(/[\r\n]/g, " "),
-      type: String(doc.documentType ?? doc.type ?? "").toUpperCase().replace(/[^A-Z0-9]/g, ""),
-      fields: doc.extractedData ?? {},
+      type: normalizeDocType(doc.documentType ?? doc.type),
+      fields: extractedFieldsOf(doc),
     }));
   const has = (type: string) => documents.some((doc) => doc.type === type);
   const warnings: { form: string; documents: string[]; message: string }[] = [];
   const nec = documents.filter((doc) =>
-    doc.type === "1099NEC" && Number(doc.fields.nonemployee_compensation) > 0);
+    doc.type === "1099NEC" && pickAmount(doc.fields, ["nonemployee_compensation", "income", "amount"]) > 0);
   const necNames = nec.map((doc) => doc.name);
 
   if (!has("SCHEDULEC") && (nec.length || (hasYearProfile && profile?.selfEmploymentIncome))) {
@@ -178,17 +178,19 @@ export async function validateCrossFormRules(db: Firestore, userId: string, taxY
     });
   }
   for (const doc of documents) {
-    if (doc.type === "1099INT" && Number(doc.fields.interest_income) >= 10) {
+    if (doc.type === "1099INT" && pickAmount(doc.fields, ["interest_income", "income", "amount"]) > 0) {
       warnings.push({
         form: "1099-INT", documents: [doc.name],
         message: "Reconcile the interest with your return. Include all taxable interest, including amounts under $10.",
       });
     }
   }
-  if (!has("W2") && hasYearProfile && profile?.employmentIncome === true) {
+  const wages = documents.filter((doc) =>
+    doc.type !== "W2" && pickAmount(doc.fields, ["wages", "gross_wages"]) > 0);
+  if (!has("W2") && (wages.length || (hasYearProfile && profile?.employmentIncome === true))) {
     warnings.push({
-      form: "W-2", documents: [],
-      message: "Your profile lists employment income. Check your employer wage statements for this year.",
+      form: "W-2", documents: wages.map((doc) => doc.name),
+      message: "Employment wages are indicated. Check your employer wage statements for this year.",
     });
   }
   return warnings;

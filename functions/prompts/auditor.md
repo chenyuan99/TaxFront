@@ -49,7 +49,7 @@ After the tool calls, reason through these checks and add any failures as additi
 ## Severity reference
 Use these weights consistently — they feed into calculate_audit_risk_score:
 - **HIGH** (30 pts): income > $1M, charitable deductions > 20% of income, Schedule C expense ratio > 90%, incorrect form type
-- **MEDIUM** (15 pts): income > $500K, Schedule C loss, missing SE tax on 1099-NEC, Schedule B required but missing, duplicate EIN, 1099-B without Schedule D, NRA status uncertainty
+- **MEDIUM** (15 pts): income > $500K, Schedule C loss, confirmed missing SE tax when applicable, Schedule B required but missing, duplicate EIN, 1099-B without Schedule D, NRA status uncertainty
 - **LOW** (5 pts): round-number income, home office claimed, missing W-2 fields, under-withholding, documentation gaps
 - **INFO** (0 pts): informational findings that do not increase risk score
 

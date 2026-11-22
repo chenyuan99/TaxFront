@@ -26,7 +26,7 @@ const EXTRACTION_PROMPT = `You are a tax document extraction engine. Analyze the
 
 Return this exact structure:
 {
-  "documentType": "<one of: W-2, 1099-NEC, 1099-INT, 1099-DIV, 1098, 1040, Schedule-C, other>",
+  "documentType": "<one of: W-2, 1099-NEC, 1099-INT, 1099-DIV, 1098, 1040, Schedule-C, Schedule-SE, 8843, other>",
   "taxYear": <4-digit year as a number, e.g. 2024>,
   "extractedData": {
     <include ONLY fields that are clearly visible in the document, as numbers>
@@ -41,6 +41,7 @@ Field names to use in extractedData by form type:
 - 1098: mortgage_interest, lender_name, outstanding_principal, points_paid
 - 1040: total_income, agi, taxable_income, total_tax, refund_amount
 - Schedule-C: gross_receipts, total_expenses, net_profit, business_name
+- Schedule-SE and 8843: identify the form and tax year; extractedData should be an empty object.
 
 All monetary values must be numbers (not strings). Omit fields that are blank or not legible.`;
 

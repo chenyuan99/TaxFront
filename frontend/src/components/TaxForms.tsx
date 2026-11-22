@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '../firebase';
 import { ArrowLeft, FileText, Search, ExternalLink, Info } from 'lucide-react';
 
 interface TaxForm {
@@ -14,6 +17,39 @@ interface TaxForm {
 export function TaxForms() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+    const [user, authLoading] = useAuthState(auth);
+    const [filingProfile, setFilingProfile] = useState<{
+        uid: string;
+        year: number;
+        form?: '1040' | '1040-NR';
+        show8843: boolean;
+    }>();
+    const [profileError, setProfileError] = useState(false);
+
+    useEffect(() => {
+        let active = true;
+        if (!user) return;
+
+        getDoc(doc(db, 'userProfiles', user.uid)).then((snapshot) => {
+            if (!active) return;
+            setProfileError(false);
+            const profile = snapshot.data();
+            const year = profile?.residencyTaxYear;
+            if (!Number.isInteger(year)) return;
+            const status = profile?.residencyStatus;
+            const form = status === 'nonresident_alien'
+                ? '1040-NR'
+                : status === 'citizen' || status === 'resident_alien' ? '1040' : undefined;
+            setFilingProfile({ uid: user.uid, year, form, show8843: profile?.claimsExemptPresenceDays === true });
+        }).catch(() => {
+            if (active) setProfileError(true);
+        });
+
+        return () => { active = false; };
+    }, [user]);
+
+    const guidance = filingProfile?.uid === user?.uid ? filingProfile : undefined;
 
     const forms: TaxForm[] = [
         {
@@ -174,6 +210,32 @@ export function TaxForms() {
                             Back to Dashboard
                         </Link>
                     </div>
+
+                    {!authLoading && user && (
+                        <section className="mb-8 rounded-md border border-gray-200 p-4">
+                            <h2 className="font-semibold">Federal filing forms</h2>
+                            {profileError && <p role="status">Your saved filing profile could not be loaded.</p>}
+                            {guidance?.form && (
+                                <p>
+                                    For tax year {guidance.year}, review{' '}
+                                    <a className="underline" href={`https://www.irs.gov/forms-pubs/about-form-${guidance.form.toLowerCase()}`}>
+                                        Form {guidance.form}
+                                    </a>{' '}
+                                    based on your saved residency status.
+                                </p>
+                            )}
+                            {guidance?.show8843 && (
+                                <p>
+                                    Review <a className="underline" href="https://www.irs.gov/forms-pubs/about-form-8843">Form 8843</a>{' '}
+                                    for the days you excluded in {guidance.year}.
+                                </p>
+                            )}
+                            <p>
+                                <Link className="underline" to="/profile">Review your tax year and residency status</Link>
+                                {guidance && <> · <a className="underline" href="https://www.irs.gov/prior-year-forms-and-instructions">Find forms for a prior year</a></>}
+                            </p>
+                        </section>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div className="relative">
