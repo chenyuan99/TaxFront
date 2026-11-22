@@ -23,6 +23,8 @@ export const runAccountant = onCall(
 
     const { userId, filingStatus, task } = readAgentInput(request.data, "accountant");
 
+    if (userId !== request.auth.uid) throw new HttpsError("permission-denied", "Access denied");
+
     const db = getFirestore();
 
     try {
@@ -41,6 +43,8 @@ export const runAuditor = onCall(
 
     const { userId, task } = readAgentInput(request.data, "auditor");
 
+    if (userId !== request.auth.uid) throw new HttpsError("permission-denied", "Access denied");
+
     const db = getFirestore();
 
     try {
@@ -48,6 +52,26 @@ export const runAuditor = onCall(
       return { status: "ok", userId, output };
     } catch (err) {
       throw new HttpsError("internal", (err as Error).message);
+    }
+  }
+);
+
+export const runFullAnalysis = onCall(
+  { memory: "1GiB", timeoutSeconds: 300, cors: true },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Must be authenticated");
+
+    const userId = request.auth.uid;
+    const { filingStatus } = readAgentInput({ userId, filingStatus: request.data?.filingStatus }, "accountant");
+    const db = getFirestore();
+    try {
+      const [accountant, auditor] = await Promise.all([
+        runAccountantAgent(db, { userId, filingStatus }),
+        runAuditorAgent(db, { userId }),
+      ]);
+      return { status: "ok", userId, accountant, auditor };
+    } catch {
+      throw new HttpsError("internal", "Could not complete tax analysis");
     }
   }
 );

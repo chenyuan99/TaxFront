@@ -29,6 +29,7 @@ export async function runAuditorAgent(db: Firestore, input: AuditorInput): Promi
     model: "googleai/gemini-2.5-flash",
     system: loadPrompt("auditor"),
     prompt,
+    context: { auth: { uid: userId } },
     maxTurns: 5,
     tools: [
       docTools.fetchUserDocuments,

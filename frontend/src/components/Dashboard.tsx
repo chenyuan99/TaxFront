@@ -4,7 +4,7 @@ import { collection, addDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Upload, RefreshCcw } from 'lucide-react';
 import { Chat } from './Chat';
-import { api, TaxDocument, TaxSummary } from '../services/api';
+import { api, FullAnalysisResponse, TaxDocument, TaxSummary } from '../services/api';
 
 // Types
 type UploadStatus = {
@@ -36,23 +36,21 @@ export function Dashboard() {
     const [archivingDocId, setArchivingDocId] = useState<string | null>(null);
     const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
     const [selectedDocToArchive, setSelectedDocToArchive] = useState<TaxDocument | null>(null);
-    const [aiResponse, setAiResponse] = useState<string | null>(null);
+    const [aiResponse, setAiResponse] = useState<FullAnalysisResponse | null>(null);
+    const [analysisError, setAnalysisError] = useState(false);
     const [isAiLoading, setIsAiLoading] = useState(false);
     const [filingStatus, setFilingStatus] = useState<string>('single');
     const [filingStatusMissing, setFilingStatusMissing] = useState(false);
 
     // Utility Functions
-    const handleRunAi = async (type: 'accountant' | 'auditor') => {
+    const handleRunAi = async () => {
         setIsAiLoading(true);
         setAiResponse(null);
+        setAnalysisError(false);
         try {
-            const result = type === 'accountant'
-                ? await api.runAccountant({ filingStatus, task: 'Review my tax situation' })
-                : await api.runAuditor({ task: 'Perform a risk assessment' });
-            setAiResponse(result.output);
-        } catch (error) {
-            console.error('AI Agent error:', error);
-            setAiResponse('Error: Failed to get response from AI agent.');
+            setAiResponse(await api.runFullAnalysis({ filingStatus }));
+        } catch {
+            setAnalysisError(true);
         } finally {
             setIsAiLoading(false);
         }
@@ -362,28 +360,26 @@ export function Dashboard() {
                             <span>Filing status not set — defaulting to Single. <a href="/profile" className="underline font-medium">Complete your profile</a> for accurate analysis.</span>
                         </div>
                     )}
-                    <div className="flex space-x-4 mb-6">
-                        <button
-                            onClick={() => handleRunAi('accountant')}
-                            disabled={isAiLoading}
-                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:bg-indigo-300 flex items-center"
-                        >
-                            {isAiLoading ? 'Analyzing...' : 'Consult AI Accountant'}
-                        </button>
-                        <button
-                            onClick={() => handleRunAi('auditor')}
-                            disabled={isAiLoading}
-                            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:bg-red-300 flex items-center"
-                        >
-                            {isAiLoading ? 'Analyzing...' : 'Run AI Auditor Risk Check'}
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleRunAi}
+                        disabled={isAiLoading}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:bg-indigo-300"
+                    >
+                        {isAiLoading ? 'Analyzing...' : 'Analyze My Taxes'}
+                    </button>
+                    {analysisError && (
+                        <p role="alert" className="mt-4 text-red-700">Tax analysis failed. Please try again.</p>
+                    )}
                     {aiResponse && (
-                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                            <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wider">AI Analysis Result:</h3>
-                            <div className="prose prose-sm max-w-none text-gray-800 whitespace-pre-wrap">
-                                {aiResponse}
-                            </div>
+                        <div className="mt-4 space-y-4" aria-live="polite">
+                            <section className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                <h3 className="font-semibold mb-2">Accountant Summary</h3>
+                                <div className="whitespace-pre-wrap">{aiResponse.accountant}</div>
+                            </section>
+                            <section className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                <h3 className="font-semibold mb-2">Auditor Findings</h3>
+                                <div className="whitespace-pre-wrap">{aiResponse.auditor}</div>
+                            </section>
                         </div>
                     )}
                 </div>

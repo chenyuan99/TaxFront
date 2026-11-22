@@ -13,12 +13,13 @@ function buildDocumentTools(db: Firestore) {
       description:
         "Retrieve all tax documents for a user from Firestore. Returns document IDs, types (W-2, 1099, etc.), tax year, processing status, and extracted financial data. Use this first to get an overview before drilling into individual documents.",
       inputSchema: z.object({
-        userId: z.string().describe("Firebase user ID"),
         taxYear: z.number().optional().describe("Optional filter by tax year, e.g. 2024"),
       }),
       outputSchema: z.unknown(),
     },
-    async ({ userId, taxYear }) => {
+    async ({ taxYear }, { context }) => {
+      const userId = context.auth?.uid;
+      if (!userId) throw new Error("Authentication is required");
       const query = db.collection("taxDocuments").where("userId", "==", userId);
       const snapshot = await query.get();
 
@@ -34,7 +35,7 @@ function buildDocumentTools(db: Firestore) {
           return {
             id: doc.id,
             name: data.name ?? "unknown",
-            documentType: data.type ?? data.documentType ?? "unknown",
+            documentType: data.documentType ?? data.type ?? "unknown",
             taxYear: docYear,
             status: data.status ?? "unknown",
             uploadDate: data.uploadDate ?? null,
@@ -61,11 +62,13 @@ function buildDocumentTools(db: Firestore) {
       }),
       outputSchema: z.unknown(),
     },
-    async ({ documentId }) => {
+    async ({ documentId }, { context }) => {
+      const userId = context.auth?.uid;
+      if (!userId) throw new Error("Authentication is required");
       const ref = db.collection("taxDocuments").doc(documentId);
       const doc = await ref.get();
 
-      if (!doc.exists) {
+      if (!doc.exists || doc.data()?.userId !== userId) {
         return { status: "not_found", message: `Document ${documentId} does not exist` };
       }
 
