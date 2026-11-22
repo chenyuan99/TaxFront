@@ -1,102 +1,39 @@
 ---
-title: "Tax Filing Skill — Gaps & Backlog"
-description: "Analysis of the clawhub.ai/irreel/tax-filing skill against TaxFront's current capabilities, with prioritised backlog items."
+title: "Tax Filing Features and Backlog"
+description: "TaxFront’s federal filing workflow, supported forms, and implementation status."
 icon: "list-check"
 ---
 
-> **Source skill:** [clawhub.ai/irreel/tax-filing](https://clawhub.ai/irreel/tax-filing) — v0.2.0, MIT-0, 479 downloads
+TaxFront helps you organize documents, review AI-generated findings, and find the federal forms to prepare. Start with [Profile](https://taxfront-1e142.web.app/profile), upload documents in [Dashboard](https://taxfront-1e142.web.app/dashboard), and review the [Tax Forms Guide](https://taxfront-1e142.web.app/forms).
 
-The tax-filing skill is a Claude Code skill that guides users through preparing US federal tax returns (citizens, resident aliens, and nonresident aliens). This page documents where it overlaps with TaxFront's existing stack and what gaps remain as actionable backlog items.
+## Filing workflow
 
-## Overlap with TaxFront
+1. **Set your filing and residency details.** Save your filing status, tax year, and confirmed residency in Profile. The Substantial Presence Test calculator uses your countable days after applicable exclusions. The test requires at least 31 days in the tax year and 183 weighted days across three years, using weights of 1, ⅓, and ⅙. The green card test, treaty rules, and exceptions can affect your classification. [IRS Substantial Presence Test](https://www.irs.gov/individuals/international-taxpayers/substantial-presence-test)
+2. **Upload your documents and check processing.** TaxFront uses Gemini to extract visible fields from W-2, 1099-NEC, 1099-INT, 1099-DIV, 1098, 1040, and Schedule C. Schedule SE and Form 8843 uploads are identified for checklist matching. Review processing status and notifications in Jobs, and verify extracted amounts against the originals.
+3. **Run Analyze My Taxes.** The dashboard sends one request for the accountant and auditor reports. The accountant uses your profile filing status when available. The auditor adds the 2024 cross-form checks below. Uploads from other tax years are excluded from this checklist.
+4. **Review official forms.** The Tax Forms Guide uses your confirmed status and saved year to direct you to Form 1040 for citizens and resident aliens or Form 1040-NR for nonresident aliens. If you indicated that you excluded days as an exempt individual, it also links to Form 8843. Choose the IRS revision for your filing year. TaxFront currently links to IRS forms. Filled PDF generation and return submission are outside the current workflow. [IRS prior-year forms](https://www.irs.gov/prior-year-forms-and-instructions)
 
-| Skill capability | TaxFront equivalent | Status |
-|---|---|---|
-| pypdf form filling | `backend/tax_forms/form_filler.py` | ✅ Exists |
-| W-2 / 1099 field extraction | `functions/src/flows/extractor.ts` | ✅ Exists |
-| 1040-NR + Form 8843 guidance | `docs/留学生报税/` | ✅ Docs only |
-| Schedule SE validation (1099-NEC) | `runAuditor` agent | ⚠️ Partial |
-| Substantial Presence Test router | — | ❌ Missing |
-| pypdf safety rules enforcement | `form_filler.py` | ⚠️ Unaudited |
-| Cross-form validation checklist | `runAuditor` agent | ❌ Missing |
+## Auditor checklist
 
-## Backlog Items
+| Check | What triggers a review |
+| --- | --- |
+| Schedule C | Sole-proprietor income indicated by a 1099-NEC or the matching-year tax profile, with no Schedule C in the uploads for that year. |
+| Schedule SE | Positive 1099-NEC compensation with no Schedule SE in the uploads. Review the $400 net-earnings threshold and applicable exceptions. Gross compensation alone does not establish a filing requirement. [IRS guidance](https://www.irs.gov/faqs/interest-dividends-other-types-of-income/1099-misc-independent-contractors-and-self-employed/1099-misc-independent-contractors-and-self-employed-3) |
+| Form 8843 | The matching-year profile indicates excluded exempt-individual days, and the uploads lack Form 8843. [IRS Form 8843](https://www.irs.gov/forms-pubs/about-form-8843) |
+| 1099-INT | The auditor flags positive interest shown on an uploaded 1099-INT for reconciliation. The usual $10 threshold governs payer reporting. Taxable interest can still be reportable below that amount. [IRS Topic 403](https://www.irs.gov/taxtopics/tc403) |
+| W-2 | The matching-year profile or an uploaded document indicates wages and the uploads lack a W-2 for that year. |
 
-### 1 — Substantial Presence Test router
+Checklist findings cite the upload name or the tax profile. An upload gap is a prompt to review your records.
 
-**Priority:** High  
-**Track:** Backend / Cloud Functions
+## GitHub issue coverage
 
-TaxFront has no logic to classify a user as a citizen/resident (→ Form 1040) versus a nonresident alien (→ Form 1040-NR). The skill's Step 1–2 workflow covers this via the IRS Substantial Presence Test: count days present on visa categories (F, J, H, etc.) over a 3-year rolling window.
+| Issue | Status in this guide |
+| --- | --- |
+| [#39 Combined analysis](https://github.com/chenyuan99/TaxFront/issues/39) | Implemented through **Analyze My Taxes**. |
+| [#40 Document parsing](https://github.com/chenyuan99/TaxFront/issues/40) | Implemented through the Cloud Functions extraction pipeline. |
+| [#41 Filing status](https://github.com/chenyuan99/TaxFront/issues/41) | The dashboard reads the profile filing status and displays a fallback notice when it is missing. |
+| [#46 Residency and form routing](https://github.com/chenyuan99/TaxFront/issues/46) | The calculator and IRS form routing are available. Populating a year-specific PDF is a remaining implementation task. |
+| [#47 Legacy PDF safety](https://github.com/chenyuan99/TaxFront/issues/47) | The legacy Python filler was removed in [PR #71](https://github.com/chenyuan99/TaxFront/pull/71). The replacement spec preserves multipage and source-file safety requirements. |
+| [#48 Cross-form checklist](https://github.com/chenyuan99/TaxFront/issues/48) | Implemented for the auditor’s supported 2024 workflow. |
 
-This is the most impactful gap given TaxFront's existing Chinese-language international-student docs (`docs/留学生报税/`), which imply nonresident users but never enforce the correct form path.
-
-**Implementation notes:**
-- Add `residencyStatus` field to user profile (`userProfiles/{uid}`) with values: `citizen`, `resident_alien`, `nonresident_alien`
-- Add a Substantial Presence Test calculator to the Profile page (days input per year × IRS weight: 1 / ⅓ / ⅙)
-- Route `form_filler.py` to 1040 vs 1040-NR based on `residencyStatus`
-- Add Form 8843 to the filing flow for nonresident aliens
-
-**Related files:**
-- `frontend/src/components/Profile.tsx`
-- `backend/tax_forms/form_filler.py`
-- `backend/tax_forms/form_definitions.py`
-- `docs/留学生报税/`
-
----
-
-### 2 — Audit `form_filler.py` against pypdf safety rules
-
-**Priority:** Medium  
-**Track:** Backend
-
-The skill enforces three safety rules for pypdf form filling that prevent silent data corruption:
-
-1. **Never write to the input path** — always write to a new output file
-2. **Use `auto_regenerate=False`** on the `PdfWriter` to prevent field value regeneration
-3. **Iterate all pages** when filling fields to avoid skipping fields on non-first pages
-
-`backend/tax_forms/form_filler.py` uses pypdf but has not been audited against these rules. Violations can cause fields to appear filled in code but render blank in the output PDF.
-
-**Action:** Review `form_filler.py` and apply all three rules where missing.
-
-**Related files:**
-- `backend/tax_forms/form_filler.py`
-
----
-
-### 3 — Cross-form validation in the Auditor agent
-
-**Priority:** Medium  
-**Track:** Cloud Functions / AI Agent
-
-The skill includes a validation checklist of common mistakes that arise when forms are considered in isolation. The `runAuditor` agent should check these automatically when a user's documents are analysed:
-
-| Rule | Trigger condition |
-|---|---|
-| File Schedule SE | 1099-NEC income present |
-| File Schedule C | Self-employment income present |
-| File Form 8843 | Nonresident alien with F/J/M/Q visa |
-| Check 1099-INT threshold | Interest income > $10 |
-| Warn on missing W-2 | Employer reported wages but no W-2 uploaded |
-
-**Implementation notes:**
-- Add a `validateCrossFormRules` tool to `functions/src/tools/accountantTools.ts`
-- Call it as the final step in `runAuditorAgent` after `fetchUserDocuments`
-- Return structured warnings with document names cited
-
-**Related files:**
-- `functions/src/flows/auditor.ts`
-- `functions/src/tools/accountantTools.ts`
-
----
-
-## Installing the Skill
-
-To use the tax-filing skill directly in Claude Code during development:
-
-```bash
-npx skills add irreel/tax-filing
-```
-
-Once installed, the agent has full context on IRS form field mappings, the Substantial Presence Test formula, treaty exemptions (e.g. US-China Article 20(c)), and the pypdf `update_form.py` safety patterns.
+The [OpenSpec filing workflow](https://github.com/chenyuan99/TaxFront/blob/main/openspec/specs/tax-filing/spec.md) records current behavior. The [fillable PDF change](https://github.com/chenyuan99/TaxFront/tree/main/openspec/changes/add-filing-pdf-output) tracks what remains. The [external tax-filing skill](https://clawhub.ai/irreel/tax-filing) informed the original gap analysis.
