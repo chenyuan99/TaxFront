@@ -1,33 +1,45 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: TaxFront API
+description: Call TaxFront’s Firebase Functions and track document processing.
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+TaxFront exposes Firebase HTTPS callable functions in `us-central1`. Sign in with Firebase Authentication before calling them. The Firebase client SDK attaches the signed-in user's ID token and exposes the function's return value as `response.data`.
 
-## Welcome
+## Callable functions
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+| Function | Input | Result |
+| --- | --- | --- |
+| `createUserProfile` | `name`, `taxId`, and `businessType` | Confirmation that the caller’s profile was updated |
+| `getTaxDocuments` | Empty object | `documents`, up to 100 of the caller’s records, newest first |
+| `getTaxSummary` | Empty object | `totalDocuments`, `documentTypes`, and `lastUpdated` for up to 100 recent records |
+| `runFullAnalysis` | Optional `filingStatus` | `status`, `userId`, and separate `accountant` and `auditor` reports |
+| `runAccountant` | Your Firebase UID as `userId`, optional `filingStatus` and `task` | `status`, `userId`, and `output` |
+| `runAuditor` | Your Firebase UID as `userId`, optional `task` | `status`, `userId`, and `output` |
+
+## Call from the web app
+
+After initializing Firebase and signing in, use `httpsCallable` to request both analysis reports.
+
+```ts
+import { getFunctions, httpsCallable } from "firebase/functions";
+
+const functions = getFunctions(undefined, "us-central1");
+const runFullAnalysis = httpsCallable(functions, "runFullAnalysis", {
+  timeout: 300_000,
+});
+const { data } = await runFullAnalysis({ filingStatus: "single" });
+```
+
+For direct HTTP requests, send a `POST` to the callable URL with `Content-Type: application/json` and `Authorization: Bearer <firebase-id-token>`. Wrap the payload in `{"data": {...}}`. A successful response uses a `result` envelope. See the [Firebase callable protocol](https://firebase.google.com/docs/functions/callable-reference) for error handling.
+
+## Document processing
+
+Creating a tax document record triggers extraction in the background. The app’s Jobs page shows progress and the final outcome.
 
 <Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
+  title="TaxFront OpenAPI specification"
+  icon="code"
+  href="https://github.com/chenyuan99/TaxFront/blob/main/docs/openapi.yml"
 >
-  View the OpenAPI specification file
+  View the callable request and response schemas.
 </Card>
-
-## Authentication
-
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
-
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
