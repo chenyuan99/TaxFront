@@ -1,248 +1,342 @@
 openapi: 3.0.3
 info:
   title: TaxFront API
-  description: API documentation for TaxFront application
+  description: Firebase HTTPS callable functions for TaxFront.
   version: 1.0.0
 servers:
-  - url: https://us-central1-taxfront-1e142.cloudfunctions.net
-    description: Production server
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  schemas:
-    UserProfile:
-      type: object
-      required:
-        - name
-        - taxId
-        - businessType
-      properties:
-        name:
-          type: string
-          description: User's full name
-        taxId:
-          type: string
-          description: Tax identification number
-        businessType:
-          type: string
-          description: Type of business
-
-    TaxDocument:
-      type: object
-      required:
-        - id
-        - name
-        - type
-        - size
-        - uploadDate
-        - url
-        - path
-        - status
-      properties:
-        id:
-          type: string
-          description: Unique identifier for the document
-        name:
-          type: string
-          description: Document name
-        originalName:
-          type: string
-          description: Original file name
-        type:
-          type: string
-          description: Document type
-        size:
-          type: number
-          description: File size in bytes
-        uploadDate:
-          type: string
-          format: date-time
-          description: Date and time when document was uploaded
-        url:
-          type: string
-          description: URL to access the document
-        path:
-          type: string
-          description: Storage path of the document
-        status:
-          type: string
-          enum: [pending, processed, error]
-          description: Current processing status
-        metadata:
-          type: object
-          properties:
-            name:
-              type: string
-            tax_id:
-              type: string
-            income:
-              type: number
-            tax_due:
-              type: number
-            tax_year:
-              type: string
-            filing_status:
-              type: string
-            confidence_scores:
-              type: object
-              additionalProperties:
-                type: number
-            parser_version:
-              type: string
-            processing_timestamp:
-              type: string
-            extraction_success:
-              type: boolean
-        error:
-          type: string
-          description: Error message if processing failed
-
-    ProcessingResult:
-      type: object
-      required:
-        - success
-        - documentId
-      properties:
-        success:
-          type: boolean
-          description: Whether the processing was successful
-        documentId:
-          type: string
-          description: ID of the processed document
-        error:
-          type: string
-          description: Error message if processing failed
-        metadata:
-          $ref: '#/components/schemas/TaxDocument/properties/metadata'
-
-    TaxSummary:
-      type: object
-      properties:
-        totalIncome:
-          type: number
-          description: Total income across all documents
-        totalTaxDue:
-          type: number
-          description: Total tax due across all documents
-        documentCount:
-          type: integer
-          description: Total number of processed documents
-        taxYear:
-          type: string
-          description: Tax year for the summary
-
+- url: https://us-central1-taxfront-1e142.cloudfunctions.net
 security:
-  - bearerAuth: []
-
+- firebaseIdToken: []
 paths:
   /createUserProfile:
     post:
-      summary: Create or update user profile
       operationId: createUserProfile
+      summary: Create or update the caller’s profile
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserProfile'
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/ProfileInput'
       responses:
         '200':
-          description: Profile created successfully
+          description: Callable result
           content:
             application/json:
               schema:
                 type: object
+                required:
+                - result
                 properties:
-                  success:
-                    type: boolean
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal server error
-
+                  result:
+                    $ref: '#/components/schemas/ProfileResult'
+        default:
+          description: Firebase callable error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallableError'
   /getTaxDocuments:
-    get:
-      summary: Get all tax documents for the user
-      operationId: getTaxDocuments
-      responses:
-        '200':
-          description: List of tax documents
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TaxDocument'
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal server error
-
-  /getTaxSummary:
-    get:
-      summary: Get tax summary for the user
-      operationId: getTaxSummary
-      responses:
-        '200':
-          description: Tax summary
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaxSummary'
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal server error
-
-  /processDocument/{documentId}:
     post:
-      summary: Process a tax document
-      operationId: processDocument
-      parameters:
-        - name: documentId
-          in: path
-          required: true
-          schema:
-            type: string
+      operationId: getTaxDocuments
+      summary: List the caller’s recent tax documents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  type: object
+                  maxProperties: 0
       responses:
         '200':
-          description: Document processing started
+          description: Callable result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProcessingResult'
-        '401':
-          description: Unauthorized
-        '404':
-          description: Document not found
-        '500':
-          description: Internal server error
-
-  /getDocumentStatus/{documentId}:
-    get:
-      summary: Get processing status of a document
-      operationId: getDocumentStatus
-      parameters:
-        - name: documentId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Document status
+                type: object
+                required:
+                - result
+                properties:
+                  result:
+                    $ref: '#/components/schemas/DocumentsResult'
+        default:
+          description: Firebase callable error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaxDocument'
-        '401':
-          description: Unauthorized
-        '404':
-          description: Document not found
-        '500':
-          description: Internal server error
+                $ref: '#/components/schemas/CallableError'
+  /getTaxSummary:
+    post:
+      operationId: getTaxSummary
+      summary: Summarize the caller’s recent tax documents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  type: object
+                  maxProperties: 0
+      responses:
+        '200':
+          description: Callable result
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - result
+                properties:
+                  result:
+                    $ref: '#/components/schemas/SummaryResult'
+        default:
+          description: Firebase callable error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallableError'
+  /runFullAnalysis:
+    post:
+      operationId: runFullAnalysis
+      summary: Run both tax analysis agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/FullAnalysisInput'
+      responses:
+        '200':
+          description: Callable result
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - result
+                properties:
+                  result:
+                    $ref: '#/components/schemas/FullAnalysisResult'
+        default:
+          description: Firebase callable error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallableError'
+  /runAccountant:
+    post:
+      operationId: runAccountant
+      summary: Run the accountant agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/AccountantInput'
+      responses:
+        '200':
+          description: Callable result
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - result
+                properties:
+                  result:
+                    $ref: '#/components/schemas/AgentResult'
+        default:
+          description: Firebase callable error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallableError'
+  /runAuditor:
+    post:
+      operationId: runAuditor
+      summary: Run the auditor agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - data
+              properties:
+                data:
+                  $ref: '#/components/schemas/AuditorInput'
+      responses:
+        '200':
+          description: Callable result
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - result
+                properties:
+                  result:
+                    $ref: '#/components/schemas/AgentResult'
+        default:
+          description: Firebase callable error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallableError'
+components:
+  securitySchemes:
+    firebaseIdToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Firebase Authentication ID token.
+  schemas:
+    ProfileInput:
+      type: object
+      required:
+      - name
+      - taxId
+      - businessType
+      properties:
+        name:
+          type: string
+          minLength: 1
+        taxId:
+          type: string
+          minLength: 1
+        businessType:
+          type: string
+          minLength: 1
+    ProfileResult:
+      type: object
+      required:
+      - message
+      properties:
+        message:
+          type: string
+    DocumentsResult:
+      type: object
+      required:
+      - documents
+      properties:
+        documents:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            required:
+            - id
+            properties:
+              id:
+                type: string
+    SummaryResult:
+      type: object
+      required:
+      - totalDocuments
+      - documentTypes
+      - lastUpdated
+      properties:
+        totalDocuments: &id001
+          type: integer
+          minimum: 0
+        documentTypes:
+          type: object
+          additionalProperties: *id001
+        lastUpdated:
+          type: string
+          nullable: true
+    FullAnalysisInput:
+      type: object
+      properties:
+        filingStatus: &id003
+          type: string
+          maxLength: 64
+    FullAnalysisResult:
+      type: object
+      required:
+      - status
+      - userId
+      - accountant
+      - auditor
+      properties:
+        status: &id005
+          type: string
+          enum:
+          - ok
+        userId: &id002
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Firebase UID of the signed-in user.
+        accountant:
+          type: string
+        auditor:
+          type: string
+    AccountantInput:
+      type: object
+      required:
+      - userId
+      properties:
+        userId: *id002
+        filingStatus: *id003
+        task: &id004
+          type: string
+          maxLength: 16384
+    AuditorInput:
+      type: object
+      required:
+      - userId
+      properties:
+        userId: *id002
+        task: *id004
+    AgentResult:
+      type: object
+      required:
+      - status
+      - userId
+      - output
+      properties:
+        status: *id005
+        userId: *id002
+        output:
+          type: string
+    CallableError:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - status
+          properties:
+            status:
+              type: string
+            message:
+              type: string
+            details: {}
