@@ -1,3 +1,4 @@
+import type { Firestore } from "firebase-admin/firestore";
 import { z } from "genkit";
 import { getAI } from "../ai";
 import { classifyDocument, collectIncome, parseDocumentsJson, round2 } from "../semantic/taxFields";
@@ -137,3 +138,58 @@ export function getAccountantTools() {
   return _tools;
 }
 
+
+export async function validateCrossFormRules(db: Firestore, userId: string, taxYear: number) {
+  const [snapshot, profileDoc] = await Promise.all([
+    db.collection("taxDocuments").where("userId", "==", userId).get(),
+    db.collection("userProfiles").doc(userId).get(),
+  ]);
+  const profile = profileDoc.data();
+  const hasYearProfile = profile?.residencyTaxYear === taxYear;
+  const documents = snapshot.docs.map((doc) => doc.data())
+    .filter((doc) => (doc.taxYear ?? doc.tax_year) === taxYear)
+    .map((doc) => ({
+      name: String(doc.name ?? doc.originalName ?? "Unnamed upload").replace(/[\r\n]/g, " "),
+      type: String(doc.documentType ?? doc.type ?? "").toUpperCase().replace(/[^A-Z0-9]/g, ""),
+      fields: doc.extractedData ?? {},
+    }));
+  const has = (type: string) => documents.some((doc) => doc.type === type);
+  const warnings: { form: string; documents: string[]; message: string }[] = [];
+  const nec = documents.filter((doc) =>
+    doc.type === "1099NEC" && Number(doc.fields.nonemployee_compensation) > 0);
+  const necNames = nec.map((doc) => doc.name);
+
+  if (!has("SCHEDULEC") && (nec.length || (hasYearProfile && profile?.selfEmploymentIncome))) {
+    warnings.push({
+      form: "Schedule C", documents: necNames,
+      message: "Review Schedule C for any income from operating a sole proprietorship.",
+    });
+  }
+  if (!has("SCHEDULESE") && nec.length) {
+    warnings.push({
+      form: "Schedule SE", documents: necNames,
+      message: "Check whether net earnings from self-employment reach $400. The 1099-NEC shows gross compensation.",
+    });
+  }
+  if (!has("8843") && !has("FORM8843") && hasYearProfile && profile?.claimsExemptPresenceDays === true) {
+    warnings.push({
+      form: "Form 8843", documents: [],
+      message: "Your profile indicates that you claim exempt-individual days. Review Form 8843.",
+    });
+  }
+  for (const doc of documents) {
+    if (doc.type === "1099INT" && Number(doc.fields.interest_income) >= 10) {
+      warnings.push({
+        form: "1099-INT", documents: [doc.name],
+        message: "Reconcile the interest with your return. Include all taxable interest, including amounts under $10.",
+      });
+    }
+  }
+  if (!has("W2") && hasYearProfile && profile?.employmentIncome === true) {
+    warnings.push({
+      form: "W-2", documents: [],
+      message: "Your profile lists employment income. Check your employer wage statements for this year.",
+    });
+  }
+  return warnings;
+}
